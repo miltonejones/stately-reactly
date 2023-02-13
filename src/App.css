@@ -1,5 +1,18 @@
+* {
+  box-sizing: border-box;
+}
+
+
+body {
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
 .App {
-  text-align: center;
+  height: 100vh;
+  padding: 0;
+  overflow: hidden;
 }
 
 .App-logo {
@@ -36,3 +49,13 @@
     transform: rotate(360deg);
   }
 }
+
+pre { 
+  line-height: 1.5;
+}
+
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
