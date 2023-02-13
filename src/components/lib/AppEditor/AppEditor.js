@@ -42,7 +42,7 @@ const Pane = styled(Box)(({ theme }) => ({
 }));
 
 const AppEditor = (props) => {
-  const {
+  const { 
     workspace_state,
     showJSON,
     application,
@@ -128,7 +128,7 @@ const AppEditor = (props) => {
                 height: "45vh",
               }}
             >
-              <ComponentTreeView {...props} components={selectedComponents} />
+            <ComponentTreeView {...props} components={selectedComponents} />
             </Pane>
           </>
         )}
@@ -136,10 +136,16 @@ const AppEditor = (props) => {
 
       <Area>
         {!showJSON && (
-          <ComponentTree
+         <>
+          {!!application && <ComponentTree
             library={props.library}
-            components={selectedComponents}
-          />
+            components={application.components}
+          />}
+           {!!selectedPage && <ComponentTree
+            library={props.library}
+            components={selectedPage.components}
+          />}
+         </>
         )}
 
         {!!showJSON && <Json>{JSON.stringify(selectedComponents, 0, 2)}</Json>}

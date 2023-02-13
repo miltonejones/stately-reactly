@@ -1,9 +1,10 @@
-
+import * as React from 'react';
 import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react";
 import { getBindings } from '../util/getBindings';
 import { getSettings } from '../util/getSettings';
 import { objectReduce } from '../util/objectReduce';
+import { AppStateContext } from '../context';
 
 // add machine code
 const componentRenderMachine = createMachine({
@@ -23,9 +24,40 @@ const componentRenderMachine = createMachine({
     },
     render: {
       description: "Render component",
-      on: {
-        REFRESH: {
-          target: "start",
+      initial: "idle",
+      states: {
+        idle: {
+          on: {
+            UPDATE: {
+              target: "updating",
+            },
+          },
+        },
+        updating: {
+          initial: "refreshing",
+          states: {
+            refreshing: {
+              invoke: {
+                src: "getDefinitions",
+                onDone: [
+                  {
+                    target: "update_settings",
+                    actions: "assignDefinitions",
+                  },
+                ],
+              },
+            },
+            update_settings: {
+              entry: "assignComponentSettings",
+              after: {
+                5: {
+                  target: "#render_machine.render.idle",
+                  actions: [],
+                  internal: false,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -36,7 +68,7 @@ const componentRenderMachine = createMachine({
         get_settings: {
           entry: "assignComponentSettings",
           after: {
-            "500": {
+            5: {
               target: "#render_machine.configure.get_styles",
               actions: [],
               internal: false,
@@ -46,7 +78,7 @@ const componentRenderMachine = createMachine({
         get_styles: {
           entry: "assignComponentStyles",
           after: {
-            "500": {
+            5: {
               target: "#render_machine.render",
               actions: [],
               internal: false,
@@ -68,8 +100,7 @@ const componentRenderMachine = createMachine({
         pageProps,
         appProps,
         selectedPage
-      } = event.data;
-      console.log ({ event })
+      } = event.data; 
       return {
         component,
         pageProps,
@@ -79,18 +110,14 @@ const componentRenderMachine = createMachine({
       };
     }),
     assignComponentSettings: assign ((context, event) => {
-      const { component,  appProps, pageProps } = context;
-      const { boundProps = [] } = component;
-      const args = getSettings(component.settings);
-      const properties = Object.keys(args).reduce((out, key) => {
-        const boundProp = boundProps.find(prop => prop.attribute === key);
-        if (boundProp) {
-          out[key] = getBindings(boundProp.boundTo, appProps, pageProps); 
-          return out;
-        }
-        out[key] = args[key];
-        return out;
-      }, {})
+      const { component, selectedPage, appProps, pageProps } = context;
+      const { scripts, boundProps = [] } = component;
+      const properties = getSettings(component.settings);
+    
+
+      boundProps.map(boundProp => Object.assign(properties, {
+        [boundProp.attribute]: getBindings(boundProp.boundTo, appProps, pageProps, { scripts, selectedPage })
+      }))
 
       return {
         properties,
@@ -123,6 +150,13 @@ export const useComponentRender = ({
       })
      },
   }); 
+
+  const reactly = React.useContext(AppStateContext);
+  React.useEffect(() => {
+    if (reactly.state.matches('edit.loaded.idle')) {
+      send('UPDATE')
+    }
+  }, [reactly.state, send])
 
   return {
     state,

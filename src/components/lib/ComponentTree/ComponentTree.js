@@ -13,7 +13,7 @@ const Specimen = ({ tag: Tag, children, component, ...props }) => {
     component,
     pageProps: props.stateProps,
     appProps: props.appProps,
-    selectedPage: props.selectedPage,
+    selectedPage: props.selectedPage || props.application,
   });
 
   const { properties, styles } = renderer;
@@ -21,13 +21,19 @@ const Specimen = ({ tag: Tag, children, component, ...props }) => {
   if (!renderer.state.matches("render")) {
     return (
       <Button variant="contained" color={renderer.color}>
-        {JSON.stringify(renderer.state.value)}Loading{" "}
-        {renderer.component?.ComponentName}...
+        Loading {renderer.component?.ComponentName}...
       </Button>
     );
   }
+
+
+  if (!!properties.invisible) {
+    return <i />
+  }
+
   return (
-    <Tag sx={styles} {...properties}>
+    <Tag sx={styles} {...properties} onClick={() => alert(JSON.stringify(properties,0,2))
+    }>
       {properties.children || properties.Label || children}
     </Tag>
   );

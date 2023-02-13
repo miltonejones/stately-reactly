@@ -46,7 +46,7 @@ function Application() {
       <ScriptDrawer />
       {reactly.state.matches('configure.loaded') && <AppDetail {...reactly} />}
       {reactly.state.matches('start.loaded') && <AppList navigate={navigate} {...reactly} />}
-      {reactly.state.matches('edit.loaded') && <AppEditor navigate={navigate} {...reactly} />}
+      {reactly.state.matches('edit.loaded') && <AppEditor navigate={navigate} {...reactly} ready={reactly.state.matches('edit.loaded.idle')}/>}
       {JSON.stringify(reactly.error)}
       {/* {JSON.stringify(reactly.state.value)} */}
 

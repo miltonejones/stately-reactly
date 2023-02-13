@@ -3,7 +3,7 @@
 import { styled, Typography } from '@mui/material';
 // import { blue } from '@mui/material/colors';
 
-const Nowrap = styled(Typography)(( { theme, width, muted, odd, bold, hover } ) => ({
+const Nowrap = styled(Typography)(( { theme, width, muted, odd, bold = false, hover } ) => ({
   cursor: hover ? 'pointer' : 'default',
   fontWeight:  bold ? 600 : 400,
   // backgroundColor: odd ? blue[50] : 'white',
