@@ -10,6 +10,7 @@ import {
   SimpleMenu,
 } from "../..";
 import { typeIcons, Nowrap, Spacer, Json, Flex } from "../../../styled";
+import { LibraryComponents } from "../../reactly";
 import { Home } from "@mui/icons-material";
 
 const Layout = styled(Box)(({ theme, state }) => {
@@ -42,7 +43,7 @@ const Pane = styled(Box)(({ theme }) => ({
 }));
 
 const AppEditor = (props) => {
-  const { 
+  const {
     workspace_state,
     showJSON,
     application,
@@ -65,6 +66,9 @@ const AppEditor = (props) => {
   const selectedComponents = selectedPage?.components || application.components;
   const selectedComponent = selectedComponents?.find(
     (f) => f.ID === selectedComponentID
+  );
+  const tbd = Object.keys(props.library).filter(
+    (key) => !Object.keys(LibraryComponents).some((lib) => lib === key)
   );
   return (
     <Layout state={workspace_state}>
@@ -128,7 +132,7 @@ const AppEditor = (props) => {
                 height: "45vh",
               }}
             >
-            <ComponentTreeView {...props} components={selectedComponents} />
+              <ComponentTreeView {...props} components={selectedComponents} />
             </Pane>
           </>
         )}
@@ -136,16 +140,21 @@ const AppEditor = (props) => {
 
       <Area>
         {!showJSON && (
-         <>
-          {!!application && <ComponentTree
-            library={props.library}
-            components={application.components}
-          />}
-           {!!selectedPage && <ComponentTree
-            library={props.library}
-            components={selectedPage.components}
-          />}
-         </>
+          <>
+            {!!application && (
+              <ComponentTree
+                library={props.library}
+                components={application.components}
+              />
+            )}
+            {!!selectedPage && (
+              <ComponentTree
+                library={props.library}
+                components={selectedPage.components}
+              />
+            )}
+            <pre>{JSON.stringify(tbd, 0, 2)}</pre>
+          </>
         )}
 
         {!!showJSON && <Json>{JSON.stringify(selectedComponents, 0, 2)}</Json>}
