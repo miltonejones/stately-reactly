@@ -28,8 +28,7 @@ import {
   LinearProgress,
   Link,
   List,
-  Menu,
-  Pagination,
+  Menu, 
   Paper,
   Popover,
   Radio,
@@ -55,6 +54,9 @@ import {
 import Marquee from "react-fast-marquee";
 import { Masonry } from "@mui/lab";
 import ReactlyIconButton from "./ReactlyIconButton/ReactlyIconButton";
+import ReactlyPagination from "./ReactlyPagination/ReactlyPagination";
+import ReactlyImage from "./ReactlyImage/ReactlyImage";
+import ReactlyFieldset from "./ReactlyFieldset/ReactlyFieldset";
 
 const ReactlySpacer = () => <Box sx={{ flexGrow: 1 }} />;
 
@@ -68,8 +70,10 @@ export const LibraryComponents = {
   Divider,
   Drawer,
   Fab,
+  Fieldset: ReactlyFieldset,
 
   IconButton: ReactlyIconButton,
+  Image: ReactlyImage,
   ImageList,
   ImageListItem,
   ImageListItemBar,
@@ -86,7 +90,7 @@ export const LibraryComponents = {
   Marquee,
   Masonry,
   Menu,
-  Pagination,
+  Pagination: ReactlyPagination,
   Paper,
   Popover,
   Radio,

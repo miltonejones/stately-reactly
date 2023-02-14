@@ -1,3 +1,4 @@
+import { useEventDelegate } from './eventDelegateMachine';
 import { useComponentRender } from './componentRenderMachine';
 import { useEventHandler } from './eventHandlerMachine';
 import { useConnection } from './connectionMachine';
@@ -9,6 +10,7 @@ import { useMenu } from './menuMachine';
 import { useAutoselect } from './autoselectMachine';
 
 export {
+  useEventDelegate,
   useComponentRender,
   useEventHandler,
   useConnection,

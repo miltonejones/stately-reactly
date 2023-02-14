@@ -1,4 +1,4 @@
-export const executeScript = (scriptID, { scripts, selectedPage }) => {
+export const executeScript = (scriptID, { scripts, selectedPage, api = {} }) => {
   const script = scripts.find(e => e.ID === scriptID);
   if (script) {
     console.log ("Executing %s", script.code);
@@ -7,7 +7,11 @@ export const executeScript = (scriptID, { scripts, selectedPage }) => {
     // eslint-disable-next-line
     const action = eval(`(${codeBlock})()`);  
     const result = action(selectedPage, {
-      pagename: selectedPage?.PagePath
+      pagename: selectedPage?.PagePath,
+      api: {
+        Alert: msg => alert (msg),
+        ...api
+      }
     });
     console.log ({ result })
     return result;

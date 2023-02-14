@@ -1,6 +1,7 @@
 import { createMachine, assign } from "xstate";
 import { useMachine } from "@xstate/react";
 import { uniqueId } from '../util/uniqueId';
+import { assignProblem } from "../util/assignProblem";
 
 // add machine code
 const componentMachine = createMachine(
@@ -193,12 +194,7 @@ const componentMachine = createMachine(
           },
         };
       }),
-      assignProblem: assign((context, event) => {
-        return {
-          error: event.message,
-          stack: event.stack,
-        };
-      }),
+      assignProblem 
     },
   }
 );

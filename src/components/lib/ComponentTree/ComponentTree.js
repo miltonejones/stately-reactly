@@ -7,8 +7,9 @@ import { AppStateContext } from "../../../context";
 import { LibraryComponents } from "../../reactly";
 import { getBindings } from "../../../util/getBindings";
 import { useComponentRender } from "../../../machines";
+import { useEventDelegate } from "../../../machines/eventDelegateMachine";
 
-const Specimen = ({ tag: Tag, children, component, ...props }) => {
+const Specimen = ({ tag: Tag, children, allowChildren, component, ...props }) => {
   const renderer = useComponentRender({
     component,
     pageProps: props.stateProps,
@@ -16,7 +17,20 @@ const Specimen = ({ tag: Tag, children, component, ...props }) => {
     selectedPage: props.selectedPage || props.application,
   });
 
+  const delegate = useEventDelegate({
+    application: props.application,
+    scripts: renderer.scripts,
+    selectedPage: props.selectedPage,
+    setState: renderer.setState
+  })
   const { properties, styles } = renderer;
+
+  if (delegate.state.matches('exec_error')) {
+    return <Stack>
+        <Nowrap>{delegate.error}</Nowrap>
+        <Nowrap variant="caption">{delegate.stack}</Nowrap>
+    </Stack>
+  }
 
   if (!renderer.state.matches("render")) {
     return (
@@ -27,13 +41,28 @@ const Specimen = ({ tag: Tag, children, component, ...props }) => {
   }
 
 
+  const { events } = component;
+  const handlers = events.reduce((out, ev) => {         
+    out[ev.event] = (e, props) => { 
+      delegate.send({
+        type: ev.action.type,
+        action: ev.action,
+        event: props
+      }) 
+    }
+    return out;
+  }, {});
+
   if (!!properties.invisible) {
     return <i />
   }
 
+  if (!allowChildren) {
+    return <Tag sx={styles} {...properties} {...handlers} />
+  }
+
   return (
-    <Tag sx={styles} {...properties} onClick={() => alert(JSON.stringify(properties,0,2))
-    }>
+    <Tag sx={styles} {...properties} {...handlers} >
       {properties.children || properties.Label || children}
     </Tag>
   );
@@ -51,7 +80,7 @@ const ComponentData = (props) => {
   const menu = useMenu();
   const isBound = !!component.boundProps?.length;
   const tag = LibraryComponents[component.ComponentType];
-  const { allowedChildren } = library[component.ComponentType];
+  const { allowedChildren, allowChildren } = library[component.ComponentType];
   const componentChildren = components
     .filter((c) => c.componentID === component.ID)
     .sort(sortByOrder);
@@ -60,7 +89,9 @@ const ComponentData = (props) => {
     return (
       <Specimen
         tag={tag}
+        application={props.application}
         component={component}
+        allowChildren={allowChildren}
         stateProps={stateProps}
         selectedPage={selectedPage}
         appProps={appProps}
@@ -166,8 +197,9 @@ const ComponentTree = ({ components, componentID }) => {
       stateProps={context.stateProps}
       appProps={context.appProps}
       components={components}
+      application={context.application}
       library={context.library}
-      selectedPage={context.selectedPage}
+      selectedPage={context.selectedPage} 
       component={c}
     />
   ));

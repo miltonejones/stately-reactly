@@ -24,6 +24,16 @@ const EventHandlerCard =  ({ event, action, onClick, modals, pageList, scriptLis
       const href = targetPage?.PageName || <>Deleted page</>
       return <>Open a link to "{href}"</>
     },
+    scriptRun: () => {
+      const script = scriptList?.find(f => f.ID === action.target);
+      if (script) {
+        if (script.PageName) {
+          return <>Run script "<b>{script.PageName}.</b>{script.name}"</>
+        }
+        return <>Run script "<b>application.</b>{script.name}"</>
+      }
+      return 'Unknown script ' + action.target + ' was not found.'
+    },
     dataExec: () => {
       const obj = resourceList.find(e => e.ID === action.target);
       if (obj) {
@@ -41,16 +51,6 @@ const EventHandlerCard =  ({ event, action, onClick, modals, pageList, scriptLis
         return <><b>{action.open ? "open" : "close"}</b> modal component "{modal.PageName||"application"}.{modal.ComponentName}"</>
       }
     },
-    scriptRun: () => {
-      const script = scriptList?.find(f => f.ID === action.target);
-      if (script) {
-        if (script.PageName) {
-          return <>Run script "<b>{script.PageName}.</b>{script.name}"</>
-        }
-        return <>Run script "<b>application.</b>{script.name}"</>
-      }
-      return 'Unknown script ' + action.target + ' was not found.'
-    }
   }
 
   const describe = actions[action.type];
@@ -68,7 +68,7 @@ const EventHandlerCard =  ({ event, action, onClick, modals, pageList, scriptLis
       </Stack>
     </ButtonCard>
   );
- }
+}
 
 
 const Actions = ({ value, onChange }) => {
@@ -129,49 +129,48 @@ const Actions = ({ value, onChange }) => {
             </IconTextField>
 }
 
- const EventEditCard = ({supportedEvents, handleChange, ...props}) => {
-    const { action, event } = props;
+const EventEditCard = ({supportedEvents, handleChange, ...props}) => {
+  const { action, event } = props;
 
+  if (!action) return <i />
 
-    if (!action) return <i />
+  const handlers = {
+    modalOpen: ModalOpen,
+    scriptRun: ScriptRun,
+    setState: SetState,
+    openLink: OpenLink,
+    dataExec: DataExec
+  };
 
-    const handlers = {
-      modalOpen: ModalOpen,
-      scriptRun: ScriptRun,
-      setState: SetState,
-      openLink: OpenLink,
-      dataExec: DataExec
-    };
+  const Handler = handlers[action.type];
 
-    const Handler = handlers[action.type];
+  const actionChange = (args) => {
+    const updated = {
+      ...action,
+      ...args
+    } 
+    handleChange(props.ID, 'action', updated)
+  }
 
-    const actionChange = (args) => {
-      const updated = {
-        ...action,
-        ...args
-      } 
-      handleChange(props.ID, 'action', updated)
-    }
+  const supportedEvent = supportedEvents?.find(e => e.name === event);
+  return (
+    <Stack spacing={1}> 
+      <IconTextField size="small" select value={event} 
+      label="Event trigger"
+      startIcon={<Pill>When</Pill>}
+      onChange={e => {
+        handleChange(props.ID, 'event', e.target.value)
+      }}>
+          {supportedEvents.map(e => <MenuItem value={e.name}>{e.description}</MenuItem>)}
+      </IconTextField>
 
-    const supportedEvent = supportedEvents?.find(e => e.name === event);
-    return <Stack spacing={1}>
-    {/* <Typography variant="subtitle2">WHEN</Typography> */}
-     <IconTextField size="small" select value={event} 
-     label="Event trigger"
-     startIcon={<Pill>When</Pill>}
-     onChange={e => {
-      handleChange(props.ID, 'event', e.target.value)
-     }}>
-        {supportedEvents.map(e => <MenuItem value={e.name}>{e.description}</MenuItem>)}
-     </IconTextField>
-
-    {!!event && <Actions value={action.type} onChange={type => {
-      actionChange({ type })
-     }}/>}
-{/* {JSON.stringify(supportedEvent)} */}
-     {!!Handler && <Handler supportedEvent={supportedEvent} actionChange={actionChange} {...props}/>}
+      {!!event && <Actions value={action.type} onChange={type => {
+        actionChange({ type })
+      }}/>} 
+      {!!Handler && <Handler supportedEvent={supportedEvent} actionChange={actionChange} {...props}/>}
     </Stack>
- }
+  )
+}
  
 const EventHandlerList = ({ events, eventChanged, supportedEvents }) => {
   const handler = useEventHandler({
@@ -195,120 +194,73 @@ const EventHandlerList = ({ events, eventChanged, supportedEvents }) => {
   if (!supportedEvents?.length) {
     return <i />
   }
-  // const { action, ...rest} = handler.eventProp ?? {};
-  // const modals = context.getApplicationModals();
- return (
-   <Layout>
+  
+  return (
+    <Layout>
 
-    <Collapse in={handler.state.matches("confirm")}>
-      <CloseConfirm allowSave send={handler.send} />
-    </Collapse>
- 
-    <Collapse in={handler.state.matches("editing")}>
-      <>
-        <EventEditCard {...handler.eventProp} handleChange={handleChange} supportedEvents={supportedEvents}/>
-
-        <Divider sx={{ pt: 1 }} />
-
-        <Flex sx={{ pt: 1 }} spacing={1}>
-          <Spacer />
-          <Btn size="small" variant="outlined" onClick={() => {
-            handler.send('CLOSE')
-          }}>
-            back 
-          </Btn>
-          <Btn size="small" variant="contained" 
-            disabled={!handler.dirty}
-            onClick={() => {
-            handler.send('SAVE')
-          }}>
-            save 
-          </Btn>
-        </Flex> 
-      </>
-    </Collapse>
- 
- 
-{/* 
-    {handler.state.matches("ready") && <SectionHead> 
-      <Spacer />
-      <Btn 
-      endIcon={<Add />}
-      onClick={() => {
-        handler.send({
-          type: 'EDIT',
-          eventProp: {action:{}}
-        })
-      }}>add event mapping</Btn>
-      </SectionHead>} */}
-
-    {!!events && <Collapse in={handler.state.matches("ready")}>
+      <Collapse in={handler.state.matches("confirm")}>
+        <CloseConfirm allowSave send={handler.send} />
+      </Collapse>
+  
+      <Collapse in={handler.state.matches("editing")}>
         <>
-        <SectionHead>
-        {/* [{JSON.stringify(supportedEvents)}] */}
-        <Spacer />
-        <Btn 
-        endIcon={<Add />}
-        onClick={() => {
-          handler.send({
-            type: 'EDIT',
-            eventProp: {action:{}}
-          })
-        }}>add event mapping</Btn>
-        </SectionHead>
+          <EventEditCard {...handler.eventProp} handleChange={handleChange} supportedEvents={supportedEvents}/>
 
-          {events.map(e => <EventHandlerCard 
-          {...e} 
-          key={e.ID} 
-          onClick={() => {
-            handler.send({
-              type: 'EDIT',
-              eventProp: e
-            })
-          }}
-          supportedEvents={supportedEvents} 
-          resourceList={resourceList}
-          scriptList={scriptList}
-          pageList={pageList}
-          modals={modals}
-        />)}        
+          <Divider sx={{ pt: 1 }} />
+
+          <Flex sx={{ pt: 1 }} spacing={1}>
+            <Spacer />
+            <Btn size="small" variant="outlined" onClick={() => {
+              handler.send('CLOSE')
+            }}>
+              back 
+            </Btn>
+            <Btn size="small" variant="contained" 
+              disabled={!handler.dirty}
+              onClick={() => {
+              handler.send('SAVE')
+            }}>
+              save 
+            </Btn>
+          </Flex> 
         </>
+      </Collapse>
+    
+      {!!events && (
+        <Collapse in={handler.state.matches("ready")}> 
+          <SectionHead> 
+            <Spacer />
+            <Btn 
+            endIcon={<Add />}
+            onClick={() => {
+              handler.send({
+                type: 'EDIT',
+                eventProp: {action:{}}
+              })
+            }}>add event mapping</Btn>
+          </SectionHead>
 
-    </Collapse>}
-
-    {/* {handler.state.matches("ready") && !!events && events.map(e => <EventHandlerCard 
-      {...e} 
-      key={e.ID} 
-      onClick={() => {
-        handler.send({
-          type: 'EDIT',
-          eventProp: e
-        })
-      }}
-      supportedEvents={supportedEvents} 
-      resourceList={resourceList}
-      scriptList={scriptList}
-      pageList={pageList}
-      modals={modals}
-    />)} */}
-     {/* <pre>
-      {JSON.stringify(handler.state.value,0,2)} 
-      </pre> */}
-   </Layout>
+            {events.map(e => (
+              <EventHandlerCard 
+                {...e} 
+                key={e.ID} 
+                onClick={() => {
+                  handler.send({
+                    type: 'EDIT',
+                    eventProp: e
+                  })
+                }}
+                supportedEvents={supportedEvents} 
+                resourceList={resourceList}
+                scriptList={scriptList}
+                pageList={pageList}
+                modals={modals}
+              />))}   
+        </Collapse>
+      )} 
+    </Layout>
  );
 }
 EventHandlerList.defaultProps = {};
 export default EventHandlerList;
-
-/**
- * {
-    "ID": "lc7iil0pmf1ootjdmy",
-    "event": "dataLoaded",
-    "componentID": "lc7g5y3cw7xb5z1nxaq",
-    "action": {
-      "type": "scriptRun",
-      "target": "lc7igp3bopl5pq771m",
-      "open": false,
-      "eventID": "lc7iil0pmf1ootjdmy"
-    }
-  }, */
+ 

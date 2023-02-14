@@ -2,6 +2,7 @@ import React from 'react';
 import { createMachine, assign } from 'xstate';
 import { useMachine } from '@xstate/react';
 import { useClientState } from ".";
+import { assignProblem } from "../util/assignProblem";
 import { getApplicationNames, getPageByPath, setApplication,  getApplicationByID } from '../connector';
 
 import useDynamoStorage from "../storage";
@@ -199,6 +200,24 @@ const reactlyMachine = createMachine(
             initial: "idle",
             states: {
               idle: {
+                initial: 'static',
+                states: {
+                  static: {
+                    on: {
+                      SETSTATE: { 
+                        target: "reset",
+                        actions: "resetContextState",
+                      },
+                    }
+                  },
+                  reset: {
+                    after: {
+                      5: {
+                        target: "static"
+                      }
+                    }
+                  }
+                },
                 on: {
                   PAGE: [
                     {
@@ -214,27 +233,11 @@ const reactlyMachine = createMachine(
                   CHANGE: {
                     actions: "assignChange",
                   },
-                  RESTATE: {
-                    // target: "cycle",
-                    // target: '#reactly_machine.edit.loaded',
+                  RESTATE: { 
                     actions: "assignContextProp",
                   },
                 },
-              },
-              cycle: {
-                entry: assign({
-                  cache:  context => context.selectedComponentID,
-                  selectedComponentID: null
-                }),
-                after: {
-                  99: {
-                    target: '#reactly_machine.edit.loaded',
-                    actions: assign({
-                      selectedComponentID: context => context.cache,
-                    })
-                  }
-                }
-              },
+              }, 
               get_page: {
                 invoke: {
                   src: "loadApplicationPage",
@@ -331,6 +334,25 @@ const reactlyMachine = createMachine(
     },
     actions: {
       
+      resetContextState: assign((context, event) => { 
+        const { appProps = {}, stateProps = {} } = context;
+        const [scope, props] = event;
+        if (scope === 'application') {
+          return {
+            appProps: {
+              ...appProps,
+              ...props
+            }
+          } 
+        }
+ 
+        return {
+          stateProps: {
+            ...stateProps,
+            ...props
+          }
+        };
+      }),
       assignApplicationPage: assign((context, event) => { 
         const selectedPage = event.data;
 
@@ -421,12 +443,6 @@ const reactlyMachine = createMachine(
           },
         };
       }),
-      assignProblem: assign((context, event) => {
-        return {
-          error: event.data.message,
-          stack: event.data.stack,
-        };
-      }),
       assignApplications: assign((context, event) => {
         return {
           applicationList: event.data,
@@ -451,6 +467,7 @@ const reactlyMachine = createMachine(
           applicationID: event.value,
         };
       }),
+      assignProblem,
     },
   }
 );

@@ -2,6 +2,7 @@
 import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react"; 
 import { assignProps } from '../util/assignProps';
+import { assignProblem } from "../util/assignProblem";
 // import { useEventHandler } from './eventHandlerMachine';
 
 // add machine code
@@ -229,12 +230,7 @@ const connectionMachine = createMachine({
           .find(f => f.ID === event.ID)
       }
     }),
-    assignProblem: assign((context, event) => {
-      return {
-        error: event.data.message,
-        stack: event.data.stack,
-      };
-    }),
+    assignProblem,
     clearResource:  assign((context, event) => { 
       return {
         resource: null,

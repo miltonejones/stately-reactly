@@ -79,6 +79,16 @@ const componentRenderMachine = createMachine({
           entry: "assignComponentStyles",
           after: {
             5: {
+              target: "#render_machine.configure.get_events",
+              actions: [],
+              internal: false,
+            },
+          },
+        },
+        get_events: {
+          entry: "assignComponentEvents",
+          after: {
+            5: {
               target: "#render_machine.render",
               actions: [],
               internal: false,
@@ -88,7 +98,7 @@ const componentRenderMachine = createMachine({
       },
     },
   },
-  context: { properties: {}, styles: {} },
+  context: { properties: {}, styles: {}, events: {} },
   predictableActionArguments: true,
   preserveActionOrder: true,
 },
@@ -124,6 +134,21 @@ const componentRenderMachine = createMachine({
         color: "warning"
       };
     }),
+    assignComponentEvents: assign ((context, event) => {
+      const { component } = context; 
+      const { events } = component;
+      const handlers = events.reduce((out, ev) => {
+        out[ev.event] = e => {
+          alert (ev.action.type)
+        }
+        return out;
+      }, {});
+
+      return {
+        events: handlers
+      }
+
+    }),
     assignComponentStyles: assign ((context, event) => {
       const { component } = context; 
       return {
@@ -152,8 +177,17 @@ export const useComponentRender = ({
   }); 
 
   const reactly = React.useContext(AppStateContext);
+
+  const setState = (props, scope) => {
+    reactly.send({
+      type: 'SETSTATE',
+      props,
+      scope
+    })
+  }
+
   React.useEffect(() => {
-    if (reactly.state.matches('edit.loaded.idle')) {
+    if (reactly.state.matches('edit.loaded.idle.static')) {
       send('UPDATE')
     }
   }, [reactly.state, send])
@@ -161,6 +195,8 @@ export const useComponentRender = ({
   return {
     state,
     send, 
+    setState,
+    scripts: reactly.getApplicationScripts(),
     ...state.context
   };
 }
