@@ -1,6 +1,6 @@
 import React from 'react';
 import { styled, MenuItem, Collapse, Grid, Stack, Box } from '@mui/material';
-import { IconTextField, TinyButton, Btn, Nowrap, SectionHead, Columns } from "../../../../../styled";
+import { IconTextField, TinyButton, Btn, Nowrap,  Flex, SectionHead, Columns } from "../../../../../styled";
 import { useListBinder } from "../../../../../machines";
 import { inputTypes } from './inputTypes';
  
@@ -8,21 +8,23 @@ const Layout = styled(Box)(({ theme }) => ({
  margin: theme.spacing(0)
 }));
 
-const ListTableField = ({ bindingProp, column, field }) => {
+const ListTableField = ({ onChange, binder, field }) => {
 
-  const binder = useListBinder({
-    bindingProp
-  });
+  // const binder = useListBinder({
+  //   bindingProp,
+  //   onChange: e => onChange(JSON.stringify(e))
+  // });
 
   const value = !binder.column?.bindings ? "" : binder.column.bindings[field];
   const type = !binder.column?.typeMap ? "" : binder.column.typeMap[field];
-  const editing = binder.state.matches('editing');
+  const editing = binder.key === field;//.state.matches('editing');
 
   const displayTypes = Object.keys(inputTypes);
   const selectedProp = inputTypes[type?.type]
 
   return <>
-  <Columns columns="33% 1fr">
+      {/* {JSON.stringify(binder.state.value)} */}
+  <Columns columns="28% 1fr 24px">
       <Nowrap variant="body2">{field}</Nowrap>
       <IconTextField 
         onChange={e => {
@@ -36,17 +38,23 @@ const ListTableField = ({ bindingProp, column, field }) => {
         endIcon={<TinyButton 
           icon={ editing ? "Close" : "Settings" }
           onClick={() => binder.send({
-          type: editing ? "CANCEL" : 'EDIT', 
-          column: bindingProp
+          type: editing ? "CANCEL" : 'EDIT',  
+          key: field,
         })} />}
         label={`Label for "${field}"`}
         size="small"
         value={value}
         /> 
+      <TinyButton icon="Delete" 
+      onClick={() => binder.send({
+        type: 'DELETE',
+        key: field
+      })} />
   </Columns>
   <Collapse in={ editing}>
    <>
  {/* (  [{type?.type}]) */}
+      <Nowrap bold small>Type</Nowrap>
    <IconTextField label={`Type (${type?.type})`} select value={type?.type}
     fullWidth 
     onChange={e => {
@@ -83,6 +91,7 @@ const ListTableField = ({ bindingProp, column, field }) => {
     </Grid>)}
    <Box>
     <Btn 
+      onClick={() => binder.send('SAVE')}
       variant="contained"
       disabled={!binder.column?.dirty}
       >save</Btn>
@@ -90,20 +99,27 @@ const ListTableField = ({ bindingProp, column, field }) => {
    {/* <pre> 
     {JSON.stringify(type, 0, 2)}
   </pre> */}
-   <pre> 
+   {/* <pre> 
     {JSON.stringify(binder.column, 0, 2)}
-  </pre>
+  </pre> */}
    </>
   </Collapse>
   </>
 }
  
-const ListTableInput = ({ application, value, setting }) => {
+const ListTableInput = ({ onChange, application, value, setting }) => {
   const bindingProp = !value 
     ? {}
     : JSON.parse(value);
 
   const resource = application?.resources?.find(res => res.ID === bindingProp?.resourceID); 
+  const available = resource?.columns?.filter(col => !bindingProp?.columnMap?.find(f => f === col))
+
+  const binder = useListBinder({
+    bindingProp,
+    onChange: e => onChange(JSON.stringify(e))
+  });
+ 
 
   return (
     <Layout>
@@ -118,25 +134,35 @@ const ListTableInput = ({ application, value, setting }) => {
     >  
     {application?.resources?.map(s => <MenuItem value={`${s.ID}`}>{s.name}</MenuItem>)}
   </IconTextField>  
-  {!!bindingProp && (<>
+  {!!bindingProp?.columnMap && (<>
   <SectionHead>Table bindings</SectionHead>
   <Stack spacing={0.5} sx={{ m: 1}}>
     {bindingProp.columnMap.map(col =>  <ListTableField 
       key={col} 
       field={col} 
-      bindingProp={bindingProp}
-      column={bindingProp.typeMap[col]}
-      value={bindingProp.bindings[col]}
+      onChange={onChange} 
+      binder={binder}
+      bindingProp={bindingProp} 
       />)} 
   </Stack></>)}
 
+  <SectionHead>Available columns</SectionHead>
+  {available?.map(col => <Flex key={col} onClick={() => {
+    binder.send({
+      type: 'ADD',
+      key: col
+    })
+  }} spacing={1}>
+    <TinyButton icon="AddCircle" />
+    <Nowrap hover variant="body2">{col}</Nowrap>
+  </Flex>)}
  
-  <pre>
-    {JSON.stringify(bindingProp, 0, 2)}
+  {/* <pre>
+    {JSON.stringify(bindingProp.columnMap, 0, 2)}
   </pre>
   <pre>
-    {JSON.stringify(resource, 0, 2)}
-  </pre>
+    {JSON.stringify(available, 0, 2)}
+  </pre> */}
       </Layout>
   );
 }

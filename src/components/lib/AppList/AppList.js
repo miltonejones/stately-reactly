@@ -9,7 +9,7 @@ export default function AppList({ logo, send, applicationList, navigate }) {
   return (
     <div>
       {!!applicationList && (
-        <Stack direction="row" sx={{p: 2}} spacing={1}>
+        <Stack direction="row" sx={{p: 2}} spacing={3}>
           {applicationList.map((app) => (
             <Box sx={{ width: 200 }} key={app.ID}>
               <ButtonCard

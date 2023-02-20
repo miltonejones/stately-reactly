@@ -4,6 +4,7 @@ import { Flex, IconTextField, Nowrap, PillMenu, TextIcon, IconSelect } from "../
 import BindMenu from '../BindMenu/BindMenu';
 import StateInput from '../StateInput/StateInput'; 
 import ListTableInput from '../ListTableInput/ListTableInput';
+import RepeaterInput from '../RepeaterInput/RepeaterInput';
   
  
 function SettingsInput ({ component, setting, pageID, handleBind, handleAdd, handleChange, configType, ...props }) { 
@@ -42,8 +43,22 @@ function SettingsInput ({ component, setting, pageID, handleBind, handleAdd, han
     </>
   }
 
+  if ('repeatertable' === setting.type) {
+    return <RepeaterInput 
+              onChange={e => handleInputChange(setting.label, e)}
+              component={component} 
+              setting={setting} 
+              {...props} 
+              value={inputProp} />
+  }
+  
   if ('listtable' === setting.type) {
-    return <ListTableInput component={component} setting={setting} {...props} value={inputProp} />
+    return <ListTableInput 
+              onChange={e => handleInputChange(setting.label, e)}
+              component={component} 
+              setting={setting} 
+              {...props} 
+              value={inputProp} />
   }
   
   // PILL input type

@@ -3,11 +3,18 @@ import React from 'react';
 import * as Icons from "@mui/icons-material";
 
 const TextIcon = ({ icon , ...props}) => {
-  const Icon = Icons[icon];
-  if (icon) {
-    return <Icon {...props}/>
-  }
-  return <i />
+  if (typeof icon === 'string') {
+    const Icon = Icons[icon];
+    if (icon) {
+      return <Icon {...props}/>
+    }
+    return <i />
+  } 
+
+  console.log ({
+    error: icon
+  })
+  return <>:: object?</>
 } 
 
 export default TextIcon;

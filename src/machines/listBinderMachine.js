@@ -24,16 +24,43 @@ const listBinderMachine = createMachine({
       on: {
         EDIT: {
           target: "editing", 
+          actions: assign((_, event) => ({
+            key: event.key
+          }))
+        },
+        DELETE: {
+          actions: "removeColumn",
+          target: "saving",
+        },
+        ADD: {
+          actions: "appendColumn",
+          target: "saving",
         },
       },
     },
     editing: {
       on: {
+        EDIT: { 
+          actions: assign((_, event) => ({
+            key: event.key
+          }))
+        },
         SAVE: {
           target: "saving",
         },
         CANCEL: {
           target: "idle", 
+          actions: assign(() => ({
+            key: null
+          }))
+        },
+        DELETE: {
+          actions: "removeColumn",
+          target: "saving",
+        },
+        ADD: {
+          actions: "appendColumn",
+          target: "saving",
         },
         CHANGE: {
           actions: "assignLabel",
@@ -47,14 +74,39 @@ const listBinderMachine = createMachine({
       },
     },
     saving: {
-      invoke: {
-        src: "bindingSaved",
-        onDone: [
-          {
-            target: "idle",
+      initial: 'save',
+      states: {
+        save: {
+          invoke: {
+            src: "bindingSaved",
+            onDone: [
+              {
+                target: "load",
+              },
+            ],
           },
-        ],
-      },
+        },
+        // pause: {
+        //   after: {
+        //     1999: {
+        //       target: 'load'
+        //     }
+        //   } 
+        // },
+        load: { 
+          invoke: {
+            src: 'loadBinding',
+            onDone: [
+              {
+                target: '#list_bind_config.editing',
+                actions: assign((_, event) => ({
+                  column: event.data
+                }))
+              }
+            ]
+          }
+        }
+      } 
     },
   },
   context: { column: {} },
@@ -73,6 +125,41 @@ const listBinderMachine = createMachine({
         }
       }
     })),
+    appendColumn: assign((context, event) => ({ 
+      key: event.key,
+      column: {
+        ...context.column,
+        dirty: true,
+        bindings: {
+          ...context.column.bindings,
+          [event.key]: event.key
+        },
+        columnMap: context.column.columnMap.concat(event.key),
+        typeMap: {
+          ...context.column.typeMap,
+          [event.key]: { 
+            type: 'Text',
+            settings: {}
+          }
+        }
+      }
+    })),
+    removeColumn: assign((context, event) => {
+      const { bindings, typeMap, columnMap } = context.column;
+      delete bindings[event.key];
+      delete typeMap[event.key];
+
+      return { 
+        key: null,
+        column: {
+          ...context.column,
+          dirty: true,
+          bindings,
+          typeMap ,
+          columnMap: columnMap.filter(f => f !== event.key)
+        }
+      }
+    }),
     assignType: assign((context, event) => ({
       column: {
         ...context.column,
@@ -113,7 +200,7 @@ export const useListBinder = ({
     services: { 
       loadBinding: async () => ({...bindingProp, dirty: false}),
       bindingSaved: async (context) => {
-        onChange && onChange(context.column)
+        onChange && onChange(context.column);
       }
     },
   }); 
