@@ -1,3 +1,4 @@
+import { useListBinder } from './listBinderMachine';
 import { useCarousel } from './carouselMachine';
 import { useRegistrar } from './registrarMachine';
 import { useDataEvent } from './dataEventMachine';
@@ -14,6 +15,7 @@ import { useMenu } from './menuMachine';
 import { useAutoselect } from './autoselectMachine';
 
 export {
+  useListBinder,
   useCarousel,
   useRegistrar,
   useDataEvent,
