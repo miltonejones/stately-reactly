@@ -1,3 +1,5 @@
+import Check from './Check';
+import TextIcon from './TextIcon';
 import Columns from './Columns';
 import ButtonCard from './ButtonCard';
 import SectionHead from './SectionHead';
@@ -34,6 +36,8 @@ export const typeIcons = {
 };
 
 export {
+  Check,
+  TextIcon,
   Columns,
   ButtonCard,
   SectionHead,

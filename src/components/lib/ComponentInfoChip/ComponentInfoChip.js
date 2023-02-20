@@ -24,13 +24,12 @@ const Submenu = styled(Box)(({ theme }) => ({
   overflow: 'hidden'
 }));
  
-const ComponentInfoChip = ({ component, library }) => {
-  if (!component) {
-    return <i />
-  }
-  const icon =  library[component.ComponentType].Icon
-  return (
-    <Layout data-testid="test-for-ComponentInfoChip"> 
+const ComponentInfoChip = ({ component, library, application, selectedPage, send }) => {
+
+  if (!!component) {
+    const icon =  library[component.ComponentType].Icon
+    return (
+      <Layout> 
         <TinyButton icon={icon} />
         {component.ComponentName}  
         <Submenu>
@@ -38,9 +37,31 @@ const ComponentInfoChip = ({ component, library }) => {
           <TinyButton icon="Delete" />
           <TinyButton icon="Input" />
         </Submenu>
-        <TinyButton icon="Close" />
-    </Layout>
-  );
+        <TinyButton icon="Close" onClick={() => send({
+          type: 'RESTATE',
+          key: 'selectedComponentID'
+        })} />
+      </Layout>
+    );
+  }
+ 
+  if (!!selectedPage) {
+    return (
+      <Layout>  
+      {selectedPage.PageName}   
+      <TinyButton icon="Close" onClick={() => send('PAGE')} />
+    </Layout> 
+    )
+  }
+
+  if (!!application) {
+    return (
+      <Layout>  
+      {application.Name}   
+      <TinyButton icon="Home" onClick={() => send('CLOSE')} />
+    </Layout> 
+    )
+  }
 }
 ComponentInfoChip.defaultProps = {};
 export default ComponentInfoChip;

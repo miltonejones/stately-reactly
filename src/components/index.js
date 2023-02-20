@@ -1,4 +1,4 @@
-import AppDetail from "./lib/AppDetail/AppDetail";
+import AppDetail, { EditForm } from "./lib/AppDetail/AppDetail";
 import AppList from "./lib/AppList/AppList";
 import AppBar from "./lib/AppBar/AppBar";
 import AppEditor from "./lib/AppEditor/AppEditor";
@@ -11,15 +11,19 @@ import AutoSelect from './lib/AutoSelect/AutoSelect';
 import ScriptDrawer from './lib/drawer/ScriptDrawer/ScriptDrawer';
 import StateDrawer from './lib/drawer/StateDrawer/StateDrawer';
 import ConnectionDrawer from './lib/drawer/ConnectionDrawer/ConnectionDrawer';
+import MachineDrawer from './lib/drawer/MachineDrawer/MachineDrawer';
 import ConfirmPopover from './lib/ConfirmPopover/ConfirmPopover';
 import DrawerMenu from './lib/DrawerMenu/DrawerMenu';
 import ComponentInfoChip from './lib/ComponentInfoChip/ComponentInfoChip';
 import ComponentTreeView from './lib/ComponentTreeView/ComponentTreeView';
 import StateSelect from './lib/StateSelect/StateSelect';
 import ScriptSelect from './lib/ScriptSelect/ScriptSelect';
+import AppSettings from './lib/AppSettings/AppSettings';
+import PageSettings from './lib/PageSettings/PageSettings';
 import ScriptModal from './lib/ScriptModal/ScriptModal';
 import CloseConfirm from './lib/CloseConfirm/CloseConfirm';
 import ComponentTree from './lib/ComponentTree/ComponentTree';
+import RightPanel from './lib/RightPanel/RightPanel';
 import EventHandlerList from './lib/EventHandlerList/EventHandlerList';
 
 export {
@@ -30,10 +34,14 @@ export {
   AppList,
   AutoSelect,
   AppBar,
+  AppSettings,
   AppEditor,
   ComponentInfoChip,
   ComponentTreeView,
+  MachineDrawer,
   ConfirmPopover,
+  EditForm,
+  PageSettings,
   ConnectionDrawer,
   EventHandlerList,
   PageTreeView,
@@ -45,5 +53,6 @@ export {
   StateDrawer,
   StateSelect,
   SimpleMenu,
+  RightPanel,
   Diagnostics
 }

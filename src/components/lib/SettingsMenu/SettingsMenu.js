@@ -8,6 +8,8 @@ const SettingsMenu = ({ value, onChange }) => {
   const menu = useMenu(onChange);
   const machines = {
     reactly_machine: "Application",
+    event_delegate: "Event Delegate",
+    data_exec: "Data Handler",
     settings_menu: "This Menu",
   };
 
@@ -29,7 +31,7 @@ const SettingsMenu = ({ value, onChange }) => {
               onClick={menu.handleClose(mac)}
               sx={{ width: 300, p: 1 }}
             >
-              <Nowrap bold={value === mac}> {machines[mac]} </Nowrap>
+              <Nowrap hover bold={value === mac}> {machines[mac]} </Nowrap>
             </Flex>
           ))}
         </Box>

@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 
 import { AppStateContext } from "../../../context";
-import { Flex, Nowrap } from "../../../styled";
+import { Flex, Nowrap, TinyButton } from "../../../styled";
 
 const IceCream = styled(Box)(({ open }) => ({
   position: "fixed",
@@ -151,7 +151,7 @@ const Diagnostics = ({ id, send, state, states, error: problem, onClose, layer }
     typeof state.value === "string" ? state.value : Object.keys(state.value)[0];
   const is = context.active_machine === id;
   return (
-    <IceCream key={id} open={is  ? 1 : 0}>
+    <IceCream key={id} open={is || error  ? 1 : 0}>
       <Card sx={{ mt: 2, width: "fit-content", minWidth: 400, maxWidth: '50vw',maxHeight: '50vh', overflow: 'auto' }}>
         <Layout data-testid="test-for-Diagnostics">
           <Stack direction="row" sx={{ alignItems: "center" }}>
@@ -175,6 +175,7 @@ const Diagnostics = ({ id, send, state, states, error: problem, onClose, layer }
           </Stack>
 
           {!!error && <Typography>
+            <TinyButton onClick={() => send('RECOVER')} icon="Warning" color="warning" />
               {error}
               </Typography>}
           {!!state.context.stack && <Typography variant="caption">
@@ -186,10 +187,16 @@ const Diagnostics = ({ id, send, state, states, error: problem, onClose, layer }
 
             {Object.keys(state.context).map((key) => (
               <Flex key={key} between>
-                <Nowrap variant="body2" bold>
+                <Nowrap variant="body2" hover
+                onClick={() => {
+                  console.log ({
+                    [key]: state.context[key]
+                  });
+                  alert(JSON.stringify(state.context[key], 0, 2));
+                }} bold>
                   {key}
                 </Nowrap>
-                <Nowrap variant="caption" onClick={() => alert(JSON.stringify(state.context[key]))} width={300}>
+                <Nowrap variant="caption" width={300}>
                   {JSON.stringify(state.context[key])}
                 </Nowrap>
               </Flex>

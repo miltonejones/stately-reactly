@@ -9,7 +9,7 @@ const Layout = styled(Box)(({ theme }) => ({
  margin: theme.spacing(0)
 }));
  
-const ResourceForm = ({ resource, connectionChange, send }) => {
+const ResourceForm = ({ resource, handleTest, response, connectionChange, send }) => {
   // const { values } = resource;
  return (
    <Layout data-testid="test-for-ResourceForm">
@@ -68,7 +68,13 @@ const ResourceForm = ({ resource, connectionChange, send }) => {
 
       <Grid item xs={2} sx={{ textAlign: 'right' }}>
         {/* <Btn sx={{mr: 1}} variant="outlined" size="small" onClick={() => send('CLOSE')}>cancel</Btn> */}
-        <Btn variant="contained" color="warning" size="small">test</Btn> 
+        <Btn 
+          onClick={handleTest}
+          variant={!!response ? "outlined" : "contained"}  
+          color="warning" size="small"
+          >
+            {!!response ? "clear" : "test"}
+          </Btn> 
       </Grid>
 
     </Grid>

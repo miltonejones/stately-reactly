@@ -1,5 +1,5 @@
 import React from 'react';
-import { styled, Stack, Box, Drawer, Typography, Collapse, IconButton} from '@mui/material';
+import { styled, Stack, Box, Drawer, Typography, LinearProgress, Collapse, IconButton} from '@mui/material';
 import { AppStateContext } from "../../../../context";
 import { DrawerMenu } from "../../.."; 
 import { Flex, Nowrap, TinyButton, Btn, SectionHead, Spacer } from "../../../../styled"; 
@@ -10,6 +10,8 @@ import ColumnList from './components/ColumnList/ColumnList';
 import { CloseConfirm, EventHandlerList } from '../../..';
 import { handleObjectChange } from '../../../../util/handlers';
 import ConnectionForm from './components/ConnectionForm/ConnectionForm';
+import { useDataExecute } from '../../../../machines/dataExecuteMachine';
+import ColumnTree from './components/ColumnTree/ColumnTree';
  
 const Layout = styled(Box)(({ theme }) => ({
   margin: theme.spacing(1),
@@ -72,10 +74,39 @@ const SplitBox = styled(Box)(({ theme }) => ({
  
 const ConnectionDrawer = () => {
   const context = React.useContext(AppStateContext);
+  const exec = useDataExecute({
+    appProps: context.appProps,
+    pageProps: context.pageProps,
+    onComplete: console.log
+  })
   const connectionChange = handleObjectChange(context.connectionPane)
   const handleClose = () => { 
     context.connectionPane.send('EXIT')
   }
+  const handleTest = () => {
+    const { resource, connection } = context.connectionPane;
+    const { values: terms } = resource;
+    // alert (JSON.stringify(resource))
+    exec.send({
+      type: !!exec.response ? 'CLEAR' : 'TEST',
+      resource,
+      connection,
+      terms
+    })
+  }
+
+  const toggleColumn = field => {
+    const { resource } = context.connectionPane;
+    const { columns } = resource;
+
+    connectionChange(resource.ID, 'columns', 
+    columns.find(c => c === field)
+     ? columns.filter(c => c !== field)
+     : columns.concat(field) 
+     );
+  }
+
+
   const { state, send, dirty } = context.connectionPane;
   const { events } = context.connectionPane.resource ?? {};
  return (
@@ -102,6 +133,11 @@ const ConnectionDrawer = () => {
 
     </SectionHead>
 
+    {exec.state.matches ("execute") && <>
+    <LinearProgress />
+    {JSON.stringify(exec.state.value)}
+    </>}
+
 
     <SplitBox>
       <SectionHead> 
@@ -109,28 +145,23 @@ const ConnectionDrawer = () => {
         <Spacer />
         {state.matches('opened.connection_edit.idle') && <TinyButton onClick={() => send('CLOSE')} icon="Close" />} 
       </SectionHead>
+
       <SectionHead> 
         edit {state.matches('opened.connection_edit.idle') ? "connection" : "resource"}
         <Spacer />
-        {state.matches('opened.connection_edit') && (<>
-          {dirty && <TinyButton onClick={() => send('SAVE')} icon="Save" />} 
-          <TinyButton onClick={() => send('CLOSE')} icon="Close" />
-        </>)} 
-        
-      </SectionHead>
-      <SectionHead>
-     
-        selected columns
-      
-        
-      </SectionHead>
-      <SectionHead>
-       
-        events
-       
-        
+          {state.matches('opened.connection_edit') && (<>
+            {dirty && <TinyButton onClick={() => send('SAVE')} icon="Save" />} 
+            <TinyButton onClick={() => send('CLOSE')} icon="Close" />
+          </>)}  
       </SectionHead>
 
+      <SectionHead> 
+        {!exec.response ? "selected columns" : "choose columns"}  
+      </SectionHead>
+
+      <SectionHead> 
+        {!!exec.response ? "selected columns" : "events"} 
+      </SectionHead> 
 
       <ConnectionTree 
         send={context.connectionPane.send}
@@ -138,47 +169,37 @@ const ConnectionDrawer = () => {
         connection={context.connectionPane.connection}
         connections={context.connectionPane.connectionProps}
         resources={context.connectionPane.resourceProps}
-        />
+        /> 
 
-    {['opened.connection_edit.confirm','opened.confirm'].some(state.matches) && (<>
-      <CloseConfirm  send={send}/>
-    </>)}
+      {['opened.connection_edit.confirm','opened.confirm'].some(state.matches) && (<>
+        <CloseConfirm  send={send}/>
+      </>)}
 
-    {state.matches('opened.connection_edit.idle') && (<>
-      <ConnectionForm connectionChange={connectionChange} send={send} connection={context.connectionPane.connection} />
-    </>)}
+      {state.matches('opened.connection_edit.idle') && (<>
+        <ConnectionForm connectionChange={connectionChange} send={send} connection={context.connectionPane.connection} />
+      </>)}
 
     {state.matches('opened.connection_edit.resource_edit') && (<>
-      <ResourceForm connectionChange={connectionChange} send={send} resource={context.connectionPane.resource} />
-      <ColumnList connectionChange={connectionChange} send={send} resource={context.connectionPane.resource}/>
-      <EventHandlerList 
+      <ResourceForm handleTest={handleTest} response={exec.response} connectionChange={connectionChange} send={send} resource={context.connectionPane.resource} />
+      {!!exec.response && <Box>
+        <ColumnTree 
+            resource={context.connectionPane.resource}
+            onAddProp={toggleColumn}
+             nodes={exec.response} />
+        </Box>}
+       <ColumnList connectionChange={connectionChange} send={send} resource={context.connectionPane.resource}/>
+      {!exec.response &&<EventHandlerList 
         supportedEvents={supportedEvents} 
         eventChanged={event => {
           const existing = events.find(e => e.ID === event.ID);
           const eventList = existing ? events.map(e => e.ID === event.ID ?  event  : e) : events.concat(event);
           connectionChange(context.connectionPane.resource.ID, 'events', eventList);
         }}  
-        events={events}/>
-    </>)}
-
-      {/* <Box>
-       [ <pre>
-        {JSON.stringify(context.connectionPane.resource?.events,0,2)}
-      </pre>]
-        <pre>
-        {JSON.stringify(context.connectionPane.state.value,0,2)}
-      </pre> 
-      </Box> */}
-
-      {/* <Box><pre>
-        {JSON.stringify(context.connectionPane.resource,0,2)}
-      </pre>
-      </Box> */}
+        events={events}/>}
+    </>)} 
 
     </SplitBox>
-   {/* [ <pre>
-       {JSON.stringify(context.connectionPane.connectionProps,0,2)}
-    </pre>] */}
+ 
    </Layout>
    </Drawer>
  );

@@ -96,6 +96,7 @@ export const useMenu = (onChange) => {
   const diagnosticProps = {
     ...menuMachine,
     state, 
+    send, 
   };
 
   return {

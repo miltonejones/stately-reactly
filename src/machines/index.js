@@ -1,3 +1,7 @@
+import { useCarousel } from './carouselMachine';
+import { useRegistrar } from './registrarMachine';
+import { useDataEvent } from './dataEventMachine';
+import { useDataExecute } from './dataExecuteMachine';
 import { useEventDelegate } from './eventDelegateMachine';
 import { useComponentRender } from './componentRenderMachine';
 import { useEventHandler } from './eventHandlerMachine';
@@ -10,6 +14,10 @@ import { useMenu } from './menuMachine';
 import { useAutoselect } from './autoselectMachine';
 
 export {
+  useCarousel,
+  useRegistrar,
+  useDataEvent,
+  useDataExecute,
   useEventDelegate,
   useComponentRender,
   useEventHandler,

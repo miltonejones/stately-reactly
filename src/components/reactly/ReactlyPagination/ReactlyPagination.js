@@ -6,16 +6,18 @@ const Layout = styled(Pagination)(({ theme }) => ({
 }));
  
 const ReactlyPagination = (props) => {
- return (
-   <Layout  
-      {...props}
-      page={Number(props.page)} 
-      count={10}
-      onChange={(e, page) => { 
-        props.onPageChange && props.onPageChange(e, { page })
-      }}
-    />
- );
+  if (!props.page) {
+    return <i />
+  }
+  return ( 
+    <Layout  
+        {...props}
+        page={Number(props.page)}  
+        onChange={(e, page) => { 
+          props.onPageChange && props.onPageChange(e, { page })
+        }}
+      /> 
+  );
 }
 ReactlyPagination.defaultProps = {};
 export default ReactlyPagination;

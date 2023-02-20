@@ -62,7 +62,7 @@ const DetailList = ({ title, options, ...props }) => {
   );
 };
 
-const EditForm = ({ application, send }) => {
+export const EditForm = ({ application, send }) => {
   return <Card sx={{p: 2, maxWidth: 360}}>
 
     <Stack spacing={1}>
@@ -74,7 +74,7 @@ const EditForm = ({ application, send }) => {
         value={application.Name}
         onChange={e => {
           send({
-            type: 'CHANGE',
+            type: 'APPCHANGE',
             key: 'Name',
             value: e.target.value
           })
@@ -87,7 +87,7 @@ const EditForm = ({ application, send }) => {
         value={application.Photo}
         onChange={e => {
           send({
-            type: 'CHANGE',
+            type: 'APPCHANGE',
             key: 'Photo',
             value: e.target.value
           })
@@ -101,7 +101,7 @@ const EditForm = ({ application, send }) => {
         select
         onChange={e => {
           send({
-            type: 'CHANGE',
+            type: 'APPCHANGE',
             key: 'HomePage',
             value: e.target.value
           })

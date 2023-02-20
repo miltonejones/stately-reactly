@@ -2,7 +2,7 @@
 import './App.css';
 import { useReactly } from './machines';
 import { LinearProgress } from '@mui/material';
-import { AppList, AppDetail, Diagnostics, AppEditor, StateDrawer, ConnectionDrawer, ScriptDrawer, AppBar } from './components';
+import { AppList, AppDetail, Diagnostics, AppEditor, StateDrawer, MachineDrawer, ConnectionDrawer, ScriptDrawer, AppBar } from './components';
 import { AppStateContext } from "./context";
 import {
   BrowserRouter,
@@ -42,6 +42,7 @@ function Application() {
       <div className="App">
 
       <ConnectionDrawer />
+      <MachineDrawer />
       <StateDrawer />
       <ScriptDrawer />
       {reactly.state.matches('configure.loaded') && <AppDetail {...reactly} />}
@@ -52,6 +53,8 @@ function Application() {
 
       {/* <IconSelect /> */}
       </div>
+      <Diagnostics {...reactly.delegate.exec.diagnosticProps} />
+      <Diagnostics {...reactly.delegate.diagnosticProps} />
       <Diagnostics {...reactly.diagnosticProps} />
     </AppStateContext.Provider>
   );

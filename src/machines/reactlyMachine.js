@@ -2,6 +2,7 @@ import React from 'react';
 import { createMachine, assign } from 'xstate';
 import { useMachine } from '@xstate/react';
 import { useClientState } from ".";
+import { report } from '../util/report';
 import { assignProblem } from "../util/assignProblem";
 import { getApplicationNames, getPageByPath, setApplication,  getApplicationByID } from '../connector';
 
@@ -13,6 +14,10 @@ import {
 } from "react-router-dom";
 import { useClientscript } from './clientscriptMachine';
 import { useConnection } from './connectionMachine';
+import { useEventDelegate } from './eventDelegateMachine';
+import { createScriptOptions } from '../util/createScriptOptions';
+import { useRegistrar } from './registrarMachine';
+import { uniqueId } from '../util/uniqueId';
 // import { useEventHandler } from './eventHandlerMachine'; 
 
 const reactlyMachine = createMachine(
@@ -91,7 +96,7 @@ const reactlyMachine = createMachine(
                   RESTATE: {
                     actions: "assignContextProp"
                   },
-                  CHANGE: {
+                  APPCHANGE: {
                     actions: 'assignProp',
                   },
                   SAVE: {
@@ -161,6 +166,14 @@ const reactlyMachine = createMachine(
       
       edit: {
         initial: "routing",
+        on: {
+          APPCHANGE: {
+            actions: 'assignProp',
+          },
+          RESOURCE: {  
+            actions: "resetResourceState",
+          },
+        },
         states: {
           routing: {
             after: {
@@ -196,21 +209,58 @@ const reactlyMachine = createMachine(
               ],
             },
           },
+
+          onload: {
+            invoke: {
+              src: 'invokeApplicationLoad',
+              onDone: [
+                {
+                  target: 'loaded'
+                }
+              ]
+            }
+          },
+
           loaded: {
             initial: "idle",
             states: {
               idle: {
                 initial: 'static',
                 states: {
-                  static: {
+                  static: { 
                     on: {
+                      JSSTATE: {  
+                        target: "reset",
+                        actions: "resetContextStateJS",
+                      },
                       SETSTATE: { 
                         target: "reset",
                         actions: "resetContextState",
                       },
+                      MODAL: { 
+                        target: "reset",
+                        actions: "resetModalState",
+                      },
+                      RESOURCE: { 
+                        target: "reset",
+                        actions: "resetResourceState",
+                      },
+                      PAGECHANGE: {
+                        actions: "assignPageChange",
+                      },
                     }
                   },
                   reset: {
+                    on: {
+                      JSSTATE: {  
+                        // target: "static",
+                        actions: "resetContextStateJS",
+                      },
+                      SETSTATE: {  
+                        // target: "static",
+                        actions: "resetContextState",
+                      },
+                    },
                     after: {
                       5: {
                         target: "static"
@@ -236,14 +286,35 @@ const reactlyMachine = createMachine(
                   RESTATE: { 
                     actions: "assignContextProp",
                   },
+                  // UNDO: '#reactly_machine.edit'
+                  // SETSTATE: { 
+                  //   target: "idle.reset",
+                  //   actions: "resetContextState", 
+                  // },
                 },
               }, 
+              page_load: {
+                invoke: {
+                  src: "invokePageLoad",
+                  onDone: [
+                    {
+                      target: "idle", 
+                    },
+                  ],
+                  onError: [
+                    {
+                      target: "load_page_error",
+                      actions: "assignProblem",
+                    },
+                  ],
+                },
+              },
               get_page: {
                 invoke: {
                   src: "loadApplicationPage",
                   onDone: [
                     {
-                      target: "idle",
+                      target: "page_load",
                       actions: "assignApplicationPage",
                     },
                   ],
@@ -290,7 +361,7 @@ const reactlyMachine = createMachine(
                   src: "loadLibrary",
                   onDone: [
                     {
-                      target: "#reactly_machine.edit.loaded",
+                      target: "#reactly_machine.edit.onload",
                       actions: "assignLibrary",
                     },
                   ],
@@ -336,22 +407,88 @@ const reactlyMachine = createMachine(
       
       resetContextState: assign((context, event) => { 
         const { appProps = {}, stateProps = {} } = context;
-        const [scope, props] = event;
+        const { scope, props } = event;
+   
         if (scope === 'application') {
-          return {
+          const appstate = {
             appProps: {
               ...appProps,
               ...props
             }
           } 
+          console.log ('%cresetContextState', 'color: lime', appstate );
+          return appstate;
         }
  
-        return {
+
+        const newstate = {
           stateProps: {
             ...stateProps,
             ...props
           }
         };
+        console.log ('%cresetContextState', 'color: cyan', newstate );
+        return newstate;
+ 
+      }),
+
+
+      resetContextStateJS: assign((context, event) => { 
+        const { appProps = {}, stateProps = {} } = context;
+        const { updated, scope } = event;
+        const existingProps = scope === 'application' ? appProps : stateProps;
+        const newstate = typeof updated === 'function' 
+        ? updated(existingProps)
+        : updated
+  
+        report(existingProps, 'existing state: ' + scope)
+        report(newstate, 'proposed state: ' + scope)
+
+        if (scope === 'application') {
+          const appstate = {
+            appProps: {
+              ...appProps,
+              ...newstate
+            }
+          } 
+          console.log ('%cresetContextStateJS', 'color: lime', appstate );
+          return appstate;
+        }
+ 
+
+        const pagestate = {
+          stateProps: {
+            ...stateProps,
+            ...newstate
+          }
+        };
+        console.log ('%cresetContextStateJS', 'color: cyan', newstate );
+        return pagestate;
+ 
+      }),
+
+
+      resetResourceState: assign((context, event) => { 
+        const { ID, dataset } = event;
+        const { datasets = {} } = context;
+
+        return {
+          datasets: {
+            ...datasets,
+            [ID]: dataset
+          }
+        }
+      }),
+      resetModalState: assign((context, event) => { 
+        const { references = {} } = context;
+        const { ID, open } = event;
+
+        return {
+          references: {
+            ...references,
+            [ID]: open
+          }
+        }
       }),
       assignApplicationPage: assign((context, event) => { 
         const selectedPage = event.data;
@@ -361,6 +498,8 @@ const reactlyMachine = createMachine(
           out[item.Key] = item.Value;
           return out;
         }, {});
+
+        // alert (JSON.stringify(stateProps))
 
         return {
            application: {
@@ -377,6 +516,7 @@ const reactlyMachine = createMachine(
           pageID: null,
           selectedPage: null,
           selectedComponent: null, 
+          selectedComponentID: null
         };
       }),
       assignPageID: assign((context, event) => { 
@@ -443,6 +583,20 @@ const reactlyMachine = createMachine(
           },
         };
       }),
+      assignPageChange: assign((context, event) => {
+        const { pageID, key, value } = event;
+        return {
+          application: {
+            ...context.application,
+            pages: (context.application.pages||[])
+              .map(page => page.ID !== pageID ? page : {
+                ...page,
+                [key]: value
+              }) ,
+            dirty: 1
+          },
+        };
+      }),
       assignApplications: assign((context, event) => {
         return {
           applicationList: event.data,
@@ -479,10 +633,29 @@ export const useReactly = () => {
   const [state, send] = useMachine(reactlyMachine, {
     services: {
       getApplicationList: async () => {
+          registrar.register({
+            instance: uniqueId(),
+            machine: reactlyMachine.id,
+            args: {
+              state, send
+            }
+            
+          })
+
         return await getApplicationNames();
       },
       commitApplicationProps: async (context) => {
         return await setApplication(context.application)
+      },
+      invokeApplicationLoad: async (context) => { 
+        invokeLoad(context.application.events); 
+        return true;
+      },
+      invokePageLoad: async (context) => { 
+        // alert ("stateProps-->" + JSON.stringify(context.stateProps))
+        !!context.selectedPage?.events &&
+          invokeLoad(context.selectedPage.events, context.stateProps); 
+        return true;
       },
       loadApplication: async (context) => {
         return await getApplicationByID(context.applicationID);
@@ -504,16 +677,76 @@ export const useReactly = () => {
     },
   });
 
-  const { application, selectedPage, library  } = state.context;
+  const { stateProps, appProps, application, selectedPage, library  } = state.context;
   const componentParent = selectedPage || application;
+  const registrar = useRegistrar();
+
+
+  const setState = (scope, fn) => {
+    // const { } = state.context;
+    const props = fn(appProps, stateProps)
+    send({
+      type: 'SETSTATE',
+      props,
+      scope
+    })
+  }
+
+  const modalOpen = (ID, open) => {
+    send({
+      type: 'MODAL',
+      ID,
+      open
+    })
+  }
 
   const getApplicationScripts = () => {
-    const pageCode = application.pages.reduce((out, page) => {
+    const pageCode = application?.pages?.reduce((out, page) => {
       const scripts = page.scripts?.filter(f => !!f.code)
       return !scripts ? out : out.concat(scripts?.map(f => ({...f, PageName: page.PageName})))
     }, []);
-    const appCode = application.scripts?.filter(f => !!f.code);
-    return [...pageCode, ...appCode]
+    const appCode = application?.scripts?.filter(f => !!f.code);
+    if (!pageCode) return []
+    return  [...pageCode, ...appCode]
+  }
+
+
+  const handleResponse = (ID, dataset) => { 
+    // alert (JSON.stringify(state.value))
+    send({
+      type: 'RESOURCE',
+      ID,
+      dataset 
+    })
+  }
+
+  const scriptOptions = createScriptOptions(state, send);
+
+  const delegateProps =  {
+    application,
+    scripts: getApplicationScripts(),
+    selectedPage,
+    setState,
+    modalOpen,
+    scriptOptions,
+    registrar,
+    handleResponse
+  }
+
+
+  const delegate = useEventDelegate(delegateProps);
+
+  const invokeLoad = (events, props) => { 
+    console.clear();
+    console.log ('invokeLoad', { stateProps, appProps, state: delegate.state.value })
+
+    delegate.send({
+      type: 'EXEC',
+      events, 
+      appProps,
+      pageProps: props || stateProps
+    });
+
   }
 
   const getApplicationModals = () => {
@@ -588,10 +821,15 @@ export const useReactly = () => {
     send('CLOSE'); 
   }, [event, id, location, subid, send])
 
+  const getAppState = async () => {
+    return state.context.appProps;
+  }
+
 
   const diagnosticProps = {
     ...reactlyMachine,
     state, 
+    send, 
   };
 
   return {
@@ -603,7 +841,12 @@ export const useReactly = () => {
     openStatePane,
     clientStatePane,
     clientScriptPane,
+    getAppState,
+    handleResponse,
+    delegateProps,
     // eventHandlerPane,
+    delegate,
+    registrar,
     connectionPane,
     ...state.context,
   };

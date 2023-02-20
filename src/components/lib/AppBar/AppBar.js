@@ -28,8 +28,12 @@ const AddressBar = styled(Box)(({ theme }) => ({
   alignItems: 'center'
 }))
  
-const AppBar = ({ showJSON, send, state, application, selectedPage, active_machine, navigate }) => {
- return (
+const AppBar = ({ showJSON, send, state, application, selectedPage = {}, active_machine, navigate }) => {
+  const { parameters = {} } = selectedPage ?? {};
+  const paramKeys = Object.values(parameters).length 
+    ? <>/<b>{Object.values(parameters).join('/')}</b></>
+    : ""
+  return (
    <Layout data-testid="test-for-AppBar">
      <AppRegistration />
      <Typography>Reactly</Typography>
@@ -43,8 +47,8 @@ const AppBar = ({ showJSON, send, state, application, selectedPage, active_machi
         
         <AddressBar>
           <Nowrap width="fit-content" sx={{mr: 1}} bold variant="caption">URL</Nowrap>
-          <Nowrap width="min-content" variant="body2">/{application.path}</Nowrap>
-          {!!selectedPage && <Nowrap width="min-content" variant="body2">/{selectedPage.PagePath}</Nowrap>}
+          <Nowrap width="min-content" muted variant="body2">/app/{application.path}</Nowrap>
+          {!!selectedPage && <Nowrap width="min-content" variant="body2">/{selectedPage.PagePath}{paramKeys}</Nowrap>}
           <Spacer />
           <Launch />
           <Nowrap width="min-content" variant="caption">Open</Nowrap>
@@ -63,6 +67,7 @@ const AppBar = ({ showJSON, send, state, application, selectedPage, active_machi
 
        {!state.matches("edit") && <Btn variant="outlined" size="small" onClick={() => navigate(`/apps/edit/${application.ID}`)}>edit</Btn>}
         <Btn variant="contained" onClick={() => send('SAVE')} disabled={!application.dirty} size="small" endIcon={<Save />}>save</Btn>
+        {/* <Btn variant="outlined" onClick={() => send('UNDO')} disabled={!application.dirty} size="small" >undo</Btn> */}
  
       </>)}
 

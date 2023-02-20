@@ -5,6 +5,8 @@ import { getBindings } from '../util/getBindings';
 import { getSettings } from '../util/getSettings';
 import { objectReduce } from '../util/objectReduce';
 import { AppStateContext } from '../context';
+import { findMatches } from '../util/findMatches';
+import { report } from '../util/report';
 
 // add machine code
 const componentRenderMachine = createMachine({
@@ -30,6 +32,13 @@ const componentRenderMachine = createMachine({
           on: {
             UPDATE: {
               target: "updating",
+              actions: assign((_, event) => {
+                if (event.datasets) {
+                  return {
+                    datasets: event.datasets
+                  }
+                }
+              })
             },
           },
         },
@@ -48,9 +57,9 @@ const componentRenderMachine = createMachine({
               },
             },
             update_settings: {
-              entry: "assignComponentSettings",
+              entry: ["assignComponentSettings", "assignComponentBindings"],
               after: {
-                5: {
+                1: {
                   target: "#render_machine.render.idle",
                   actions: [],
                   internal: false,
@@ -66,7 +75,7 @@ const componentRenderMachine = createMachine({
       initial: "get_settings",
       states: {
         get_settings: {
-          entry: "assignComponentSettings",
+          entry: ["assignComponentSettings", "assignComponentBindings"],
           after: {
             5: {
               target: "#render_machine.configure.get_styles",
@@ -110,7 +119,12 @@ const componentRenderMachine = createMachine({
         pageProps,
         appProps,
         selectedPage
-      } = event.data; 
+      } = event.data;
+      
+      // console.log ({
+      //   pageProps,
+      //   appProps
+      // })
       return {
         component,
         pageProps,
@@ -119,15 +133,105 @@ const componentRenderMachine = createMachine({
         color: "error"
       };
     }),
+    assignComponentBindings: assign ((context, event) => {
+      const { component, properties, datasets } = context;
+      // !!datasets && report(datasets, `context datasets`);
+      const args = getSettings(component.settings);
+      if (args.bindings && datasets) {
+        // const bindings = JSON.parse(args.bindings);
+
+
+        const bindingObject = JSON.parse(args.bindings); 
+      report(bindingObject, `${component.ComponentName} bindings`);
+      //  console.log({bindingObject}, 'usePageResourceState')
+        const columnMap = bindingObject.columnMap || Object.keys(bindingObject.bindings) 
+        const typeMap = bindingObject.typeMap || {}
+        // const id = bindingObject.resourceID;
+        const resource = datasets[bindingObject.resourceID]; //.find(f => f.resourceID === bindingObject.resourceID);
+
+        if (resource?.records?.map) {
+          // console.log({ bindingObject })
+          const dataRows = resource.records.map(record => {
+            return columnMap.reduce((items, res) => {
+
+              // const { settings } = typeMap[res] ?? {};
+              // console.log ({ settings })
+
+              items[bindingObject.bindings[res]] = record[ res ]
+              return items;
+            }, {})
+          });
+
+          return {
+            properties: {
+              ...properties,
+              dataRows,
+              columnMap,
+              resource,
+              columnNames: bindingObject.bindings,
+              typeMap
+            }
+          }
+        } 
+
+      }
+
+    }),
     assignComponentSettings: assign ((context, event) => {
       const { component, selectedPage, appProps, pageProps } = context;
       const { scripts, boundProps = [] } = component;
-      const properties = getSettings(component.settings);
+      const args = getSettings(component.settings);
     
 
-      boundProps.map(boundProp => Object.assign(properties, {
-        [boundProp.attribute]: getBindings(boundProp.boundTo, appProps, pageProps, { scripts, selectedPage })
-      }))
+      boundProps.map(boundProp => Object.assign(args, {
+        [boundProp.attribute]: getBindings(boundProp.boundTo, { 
+          appProps, 
+          pageProps, 
+          scripts, 
+          selectedPage 
+        })
+      }));
+
+      const properties = !args ? {} 
+        : Object.keys(args).reduce((out, arg) => {
+
+          const bracketTest = /\{([^}]+)\}/g
+
+          let deterpolatedText = args[arg];
+
+          if (typeof deterpolatedText === 'string') {
+
+            // loop through all matches and replace value
+            findMatches(bracketTest, deterpolatedText).map(match => {
+              const [ wholeText, foundText ] = match; 
+
+              const innerText = getBindings(foundText, { 
+                appProps, 
+                pageProps, 
+                scripts, 
+                selectedPage 
+              })
+
+              return deterpolatedText = deterpolatedText.replace(wholeText, innerText)
+        
+            }) 
+
+            // out[arg] = deterpolatedText;
+            // return out;
+
+          }
+  
+          out[arg] = deterpolatedText; 
+          return out;
+
+        }, {})
+
+      // console.log ({
+      //   name: component.ComponentName,
+      //   appProps,
+      //   pageProps,
+      //   properties
+      // })
 
       return {
         properties,
@@ -163,6 +267,7 @@ export const useComponentRender = ({
   component,
   pageProps,
   appProps, 
+  datasets,
   selectedPage
 }) => {
   const [state, send] = useMachine(componentRenderMachine, {
@@ -171,6 +276,7 @@ export const useComponentRender = ({
         component,
         pageProps,
         appProps, 
+        datasets,
         selectedPage
       })
      },
@@ -178,7 +284,8 @@ export const useComponentRender = ({
 
   const reactly = React.useContext(AppStateContext);
 
-  const setState = (props, scope) => {
+  const setState = (scope, fn) => {
+    const props = fn(appProps, pageProps)
     reactly.send({
       type: 'SETSTATE',
       props,
@@ -186,9 +293,29 @@ export const useComponentRender = ({
     })
   }
 
+  const modalOpen = (ID, open) => {
+    reactly.send({
+      type: 'MODAL',
+      ID,
+      open
+    })
+  }
+
+  // const setState = (props, scope) => {
+  //   reactly.send({
+  //     type: 'SETSTATE',
+  //     props,
+  //     scope
+  //   })
+  // }
+
   React.useEffect(() => {
-    if (reactly.state.matches('edit.loaded.idle.static')) {
-      send('UPDATE')
+    if (reactly.state.matches('edit.loaded.idle.static')) { 
+      send({
+        type: 'UPDATE',
+        datasets: reactly.state.context.datasets
+      });
+      // console.log ({update: reactly.state.context.datasets})
     }
   }, [reactly.state, send])
 
@@ -196,6 +323,7 @@ export const useComponentRender = ({
     state,
     send, 
     setState,
+    modalOpen,
     scripts: reactly.getApplicationScripts(),
     ...state.context
   };

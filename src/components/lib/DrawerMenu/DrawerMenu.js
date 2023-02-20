@@ -1,6 +1,6 @@
 import React from 'react';
 import { styled, Stack } from '@mui/material';
-import {  RecentActors, Code, AutoStories } from "@mui/icons-material";
+import {  Gamepad, RecentActors, Code, AutoStories } from "@mui/icons-material";
 import { BorderButton} from "../../../styled";
 import { AppStateContext } from "../../../context";
  
@@ -23,6 +23,10 @@ const DrawerMenu = ({ wide, onClose }) => {
       icon: <AutoStories />, 
       machine: context.connectionPane, 
     }, 
+    registrar: {
+      icon: <Gamepad />, 
+      machine: context.registrar, 
+    }, 
   };
  return (
    <Layout direction={wide ? 'row' : 'column' }>
@@ -33,7 +37,7 @@ const DrawerMenu = ({ wide, onClose }) => {
         }} key={ico} color="inherit">
           {drawerMenuItems[ico].icon}
         </BorderButton>
-      ))}
+      ))} 
    </Layout>
  );
 }

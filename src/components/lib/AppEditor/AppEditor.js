@@ -2,7 +2,7 @@ import React from "react";
 import { styled, Box, Typography, IconButton, Stack } from "@mui/material";
 import {
   PageTreeView,
-  SettingsPanel,
+  RightPanel,
   ComponentTree,
   ComponentTreeView,
   ComponentInfoChip,
@@ -139,6 +139,10 @@ const AppEditor = (props) => {
       </Area>
 
       <Area>
+      {/* {JSON.stringify(props.delegate.state.value)}/{props.delegate.event_index}/{props.delegate.action?.type} */}
+
+      <Nowrap>{props.delegate.error}</Nowrap>
+      <Nowrap variant="caption">{props.delegate.stack}</Nowrap> 
         {!showJSON && (
           <>
             {!!application && (
@@ -157,13 +161,14 @@ const AppEditor = (props) => {
           </>
         )}
 
-        {!!showJSON && <Json>{JSON.stringify(selectedComponents, 0, 2)}</Json>}
+        {!!showJSON && <Json>{JSON.stringify(application, 0, 2)}</Json>}
       </Area>
 
       <Area>
         <Flex sx={{ p: 1 }}>
           {!!(workspace_state & 2) && (
             <ComponentInfoChip
+              {...props}
               component={selectedComponent}
               library={props.library}
             />
@@ -171,9 +176,9 @@ const AppEditor = (props) => {
           <Spacer />
           <Box onClick={() => handleCollapse(2)}>{typeIcons.close}</Box>
         </Flex>
-        {!!(workspace_state & 2) && !!selectedComponent && (
+        {!!(workspace_state & 2) && (
           <Box>
-            <SettingsPanel {...props} component={selectedComponent} />
+            <RightPanel {...props} selectedComponent={selectedComponent} selectedPage={selectedPage} application={application}/>
           </Box>
         )}
       </Area>
