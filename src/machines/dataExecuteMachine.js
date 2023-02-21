@@ -6,7 +6,8 @@ import { executeScript } from '../util/executeScript';
 import { assignProblem } from "../util/assignProblem";
 import { clearProblems } from "../util/clearProblems";
 import { useDataEvent } from './dataEventMachine';
-import { uniqueId } from '../util/uniqueId';
+// import { uniqueId } from '../util/uniqueId';
+import { drillPath } from '../util/drillPath';
 
 // add machine code
 const dataExecuteMachine = createMachine({
@@ -288,6 +289,7 @@ const dataExecuteMachine = createMachine({
     })),
     configureRequestParams: assign((context) => {
       const { connection, resource, terms } = context;
+      const { node, columns } = resource;
 
       // URL param delimiter
       const delimiter = resource.format === "rest" ? "/" : "&";
@@ -314,6 +316,7 @@ const dataExecuteMachine = createMachine({
 
       return {
         endpoint,
+        node, columns,
         requestOptions: null
       }
 
@@ -338,13 +341,13 @@ export const useDataExecute = ({
   const [state, send] = useMachine(dataExecuteMachine, {
     services: { 
       registerMe: async () => {
-        const instance = uniqueId();
-        // console.log ({ registering: dataExecuteMachine.id, instance })
-        props.registrar && props.registrar.register({
-          instance,
-          machine: dataExecuteMachine.id,
-          args: {state, send}
-        });
+        // const instance = uniqueId();
+        // // console.log ({ registering: dataExecuteMachine.id, instance })
+        // props.registrar && props.registrar.register({
+        //   instance,
+        //   machine: dataExecuteMachine.id,
+        //   args: {state, send}
+        // });
         return true;
       },
       loadPageParams: async () => ({
@@ -402,9 +405,13 @@ export const useDataExecute = ({
       },
 
       executeRequest: async (context) => {
-        const { endpoint, requestOptions } = context;  
+        const { endpoint, node, columns, requestOptions } = context;  
         const response = await fetch(endpoint, requestOptions);
-        return await response.json(); 
+
+        const json = await response.json();  
+         const rows = !(!!node && !!columns?.length) ? json : drillPath(json, node);
+        
+        return node.indexOf('/') > 0 ? rows : json;
       }
     },
   }); 

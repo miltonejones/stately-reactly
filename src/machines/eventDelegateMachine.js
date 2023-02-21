@@ -1,6 +1,8 @@
 
 import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react"; 
+import { useParams } from "react-router-dom";
+
 // import { executeScript } from '../util/executeScript';
 import { assignProblem } from "../util/assignProblem";
 import { clearProblems } from "../util/clearProblems";
@@ -10,7 +12,8 @@ import { useOpenLink } from './handlers/openLink';
 import { useRunScript } from './handlers/runScript';
 import { useSetState } from './handlers/setState';
 import { useModalOpen } from './handlers/modalOpen';
-import { uniqueId } from '../util/uniqueId';
+// import { uniqueId } from '../util/uniqueId';
+import { getRouteParams } from '../util/getRouteParams';
 
 // add machine code
 const eventDelegateMachine = createMachine(
@@ -233,9 +236,10 @@ export const useEventDelegate = (props) => {
       
     handleResponse,
     scriptOptions,
-    registrar
+    // registrar
   } = props;
   
+  const routeParams = useParams();
   const { openLink } = useOpenLink()
   const { runScript } = useRunScript(scriptOptions);
   const { setState } = useSetState(setter);
@@ -244,11 +248,14 @@ export const useEventDelegate = (props) => {
   const [state, send] = useMachine(eventDelegateMachine, {
     services: { 
       loadApplicationProps: async () => {
-        registrar && registrar.register({
-          instance: uniqueId(),
-          machine: eventDelegateMachine.id,
-          args: { state, send }
-        })
+        // console.log ({
+        //   routeParams
+        // })
+        // registrar && registrar.register({
+        //   instance: uniqueId(),
+        //   machine: eventDelegateMachine.id,
+        //   args: { state, send }
+        // })
         return {
           application,
           selectedPage,
@@ -269,10 +276,16 @@ export const useEventDelegate = (props) => {
         const terms = !action.terms ? [] : Object.keys(action.terms).reduce((out, term) => {
           const key = action.terms[term]; 
 
+          const routeProps = getRouteParams(routeParams["*"], selectedPage?.parameters);
+          !!routeParams["*"] && console.log ({
+            routeProps,
+            routeParams
+          })
           const value = getBindings(key, {
             appProps,
             pageProps,
             eventProps,
+            routeProps,
             scripts 
           });   
 
@@ -314,6 +327,12 @@ export const useEventDelegate = (props) => {
     send('COMPLETE');
     handleResponse(ID, data);
   }
+
+
+  // console.log ({ routeProps })
+
+  // !!routeParams && Object.keys(routeParams).length && 
+  //   console.log ({ routeParams })
 
   const exec = useDataExecute({
     appProps,

@@ -14,7 +14,10 @@ const Layout = styled(Box)(({ theme }) => ({
   
  
 const SettingsPanel = (props) => {
-  const { library, component, components, send, pageID, selectedType = 0 } = props;
+  const { library, component, send, pageID, selectedType = 0 } = props;
+  const componentParent = props.selectedPage || props.application;
+  const selectedComponents = componentParent?.components;
+
 
 
   const handler =  useComponent({
@@ -108,7 +111,7 @@ const SettingsPanel = (props) => {
       handleScript,
       handleBind,
       library,
-      components
+      components: selectedComponents
     }}
     >
    <Layout>

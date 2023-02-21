@@ -17,9 +17,10 @@ export const useRunScript = (scriptOptions = {}) => {
       application,
       options,
       api: {
-        openPath: path => {
-          const page = application.pages.find(f => f.PagePath === path);
-          navigate (`/apps/page/${application.ID}/${page.ID}`)
+        openPath: (path, params) => {
+          const suffix = !params ? '' : `/${Object.values(params).join('/')}`
+          // const page = application.pages.find(f => f.PagePath === path);
+          navigate (`/edit/${context.application?.path}/${path}${suffix}`)
         },
         ...api
       } 

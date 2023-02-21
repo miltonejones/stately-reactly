@@ -40,7 +40,7 @@ const AppBar = ({ showJSON, send, state, application, selectedPage = {}, active_
      {!!application && (
       <>
         <Flex spacing={1} sx={{  p: 1 }}>
-          <Chip onClick={() => navigate(`/apps/page/${application.ID}`)} label={application.Name} color="primary" variant={!!selectedPage ? "filled" : "outlined"}/>
+          <Chip onClick={() => navigate(`/edit/${application.path}`)} label={application.Name} color="primary" variant={!!selectedPage ? "filled" : "outlined"}/>
           <Typography variant="body2">Menu</Typography>
         </Flex>
         <Box onClick={() => navigate('/')}> {typeIcons.back}</Box>

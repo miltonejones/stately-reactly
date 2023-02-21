@@ -24,7 +24,7 @@ const PageTreeView = ({ application, pageID, openFolders={}, send, parentID, nav
       return (
       <Box key={node.ID}>
         <Flex  
-          onClick={() => navigate(`/apps/page/${application.ID}/${node.ID}`)} 
+          onClick={() => navigate(`/edit/${application.path}/${node.PagePath}`)} 
           spacing={1} 
           sx={{ml: indent}}
           >{typeIcons.folder[pageID  === node.ID ? 'open' : 'closed']} 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { styled, MenuItem, Collapse, Grid, Stack, Box } from '@mui/material';
-import { IconTextField, TinyButton, Btn, Nowrap,  Flex, SectionHead, Columns } from "../../../../../styled";
+import { IconTextField, TinyButton, Btn, Nowrap, Spacer, Flex, SectionHead, Columns } from "../../../../../styled";
 import { useListBinder } from "../../../../../machines";
 import { inputTypes } from './inputTypes';
  
@@ -37,10 +37,12 @@ const ListTableField = ({ onChange, binder, field }) => {
         disabled={!editing}
         endIcon={<TinyButton 
           icon={ editing ? "Close" : "Settings" }
-          onClick={() => binder.send({
-          type: editing ? "CANCEL" : 'EDIT',  
-          key: field,
-        })} />}
+          onClick={() => {
+            binder.send({
+              type: editing ? "CANCEL" : 'EDIT',  
+              key: field,
+            })
+          }} />}
         label={`Label for "${field}"`}
         size="small"
         value={value}
@@ -89,13 +91,14 @@ const ListTableField = ({ onChange, binder, field }) => {
           ))} 
       </Grid>
     </Grid>)}
-   <Box>
+   <Flex>
+    <Spacer />
     <Btn 
       onClick={() => binder.send('SAVE')}
       variant="contained"
       disabled={!binder.column?.dirty}
       >save</Btn>
-   </Box>
+   </Flex>
    {/* <pre> 
     {JSON.stringify(type, 0, 2)}
   </pre> */}
@@ -135,7 +138,7 @@ const ListTableInput = ({ onChange, application, value, setting }) => {
     {application?.resources?.map(s => <MenuItem value={`${s.ID}`}>{s.name}</MenuItem>)}
   </IconTextField>  
   {!!bindingProp?.columnMap && (<>
-  <SectionHead>Table bindings</SectionHead>
+  <SectionHead sx={{ mt: 2 }}>Table bindings</SectionHead>
   <Stack spacing={0.5} sx={{ m: 1}}>
     {bindingProp.columnMap.map(col =>  <ListTableField 
       key={col} 
@@ -146,7 +149,7 @@ const ListTableInput = ({ onChange, application, value, setting }) => {
       />)} 
   </Stack></>)}
 
-  <SectionHead>Available columns</SectionHead>
+  <SectionHead sx={{ mt: 2 }}>Available columns</SectionHead>
   {available?.map(col => <Flex key={col} onClick={() => {
     binder.send({
       type: 'ADD',

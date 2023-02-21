@@ -66,8 +66,9 @@ const ReactlyDatagrid = (props) => {
     }
 
 
-   {!!dataRows &&   <TableBody>
-        {dataRows.map((row, i) => (
+   {!!dataRows &&   (
+      <TableBody>
+        {props.dataRows.map((row, i) => (
           <TableRow key={i}  >
             {Object.values(row).map((cell, k) => <Cell 
               columnMap={columnMap} 
@@ -118,7 +119,7 @@ const ReactlyDatagrid = (props) => {
             
           </TableRow>
         ))}
-      </TableBody>}
+      </TableBody>)}
 
         </Table>
 
@@ -135,10 +136,10 @@ const ReactlyDatagrid = (props) => {
 const CellContent = ({ columnMap, typeMap, displayKey, value, selected,  children, ...props}) => {
 
 
-  const [content] = React.useState(children)
+  // const [content] = React.useState(children)
 
   const displayType = typeMap?.[displayKey];
-  const transformer = displayType?.settings?.transform;
+  // const transformer = displayType?.settings?.transform;
 
   // const { executeScript } = useRunScript();
 
@@ -163,16 +164,16 @@ const CellContent = ({ columnMap, typeMap, displayKey, value, selected,  childre
 
 
   if (!(!!typeMap && !!columnMap && !!typeMap[ displayKey ])) {
-    return <>{content}</>
+    return <>{children}</>
   } 
 
   if (displayType?.type === 'Text') {
-    return <Typography variant={displayType.settings.Variant || 'body2'}>{content}</Typography> 
+    return <Typography variant={displayType.settings.Variant || 'body2'}>{children}</Typography> 
   }
  
   if (displayType?.type === 'Link') {
     return <Linked { ...props} selected={selected} sx={{ cursor: 'pointer'}} {...displayType.settings}>
-      <Typography variant={displayType.settings.Variant || 'body2'}>{content}</Typography>
+      <Typography variant={displayType.settings.Variant || 'body2'}>{children}</Typography>
     </Linked>
   }
  
@@ -186,10 +187,10 @@ const CellContent = ({ columnMap, typeMap, displayKey, value, selected,  childre
   }
 
   if (displayType?.type === 'Icon') {
-    return <TextIcon icon={content} /> 
+    return <TextIcon icon={children} /> 
   }
 
-  return <>{content}</>
+  return <>{children}</>
 }
 
 const colorize = ({ selected, theme, color = 'primary', columnMap, typeMap, displayKey }) => {

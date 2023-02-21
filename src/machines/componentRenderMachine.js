@@ -149,9 +149,11 @@ const componentRenderMachine = createMachine({
         // const id = bindingObject.resourceID;
         const resource = datasets[bindingObject.resourceID]; //.find(f => f.resourceID === bindingObject.resourceID);
 
-        if (resource?.records?.map) {
+        const records = resource?.records  || resource;
+
+        if (records?.map) {
           // console.log({ bindingObject })
-          const dataRows = resource.records.map(record => {
+          const dataRows = records.map(record => {
             return columnMap.reduce((items, res) => {
 
               // const { settings } = typeMap[res] ?? {};

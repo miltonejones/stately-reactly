@@ -10,10 +10,7 @@ const TextIcon = ({ icon , ...props}) => {
     }
     return <i />
   } 
-
-  console.log ({
-    error: icon
-  })
+ 
   return <>:: object?</>
 } 
 

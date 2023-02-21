@@ -9,15 +9,13 @@ import { getApplicationNames, getPageByPath, setApplication,  getApplicationByID
 import useDynamoStorage from "../storage";
 
 import { 
-  useParams,
-  useLocation, 
+  useParams, 
 } from "react-router-dom";
 import { useClientscript } from './clientscriptMachine';
 import { useConnection } from './connectionMachine';
 import { useEventDelegate } from './eventDelegateMachine';
 import { createScriptOptions } from '../util/createScriptOptions';
-import { useRegistrar } from './registrarMachine';
-import { uniqueId } from '../util/uniqueId';
+import { useRegistrar } from './registrarMachine'; 
 // import { useEventHandler } from './eventHandlerMachine'; 
 
 const reactlyMachine = createMachine(
@@ -56,7 +54,13 @@ const reactlyMachine = createMachine(
                 target: '#reactly_machine.edit',
                 actions: 'assignApplicationID',
               },
-
+              LOOKUP: [
+                {
+                  target: '#reactly_machine.edit',
+                  actions: 'assignApplicationIDByName', 
+                  cond: (_, event) => !event.pagename,
+                }
+              ],
               RESTATE: {
                 actions: "assignContextProp"
               },
@@ -269,6 +273,18 @@ const reactlyMachine = createMachine(
                   }
                 },
                 on: {
+                  
+                  LOOKUP: [
+                    {
+                      target: "get_page",
+                      actions: 'assignPageIDByName', 
+                      cond: (_, event) => !!event.pagename,
+                    },
+                    { 
+                      actions: "clearPageID",
+                      internal: false,
+                    },
+                  ],
                   PAGE: [
                     {
                       target: "get_page",
@@ -519,6 +535,26 @@ const reactlyMachine = createMachine(
           selectedComponentID: null
         };
       }),
+      assignPageIDByName: assign((context, event) => { 
+        const { applicationList, application } = context;
+        console.log ({ applicationList, event });
+        if (applicationList) {  
+          const app = applicationList.find(f => f.path === event.appname);
+          if (app) {
+            const page = application.pages.find(f => f.PagePath === event.pagename);
+    
+            return {
+              applicationID: app.ID,
+              pageID: page.ID,
+              selectedComponent: null,
+              openFolders: {
+                ...context.openFolders,
+                [page.ID]: !context.openFolders[page.ID]
+              }
+            };
+          }
+        }
+      }),
       assignPageID: assign((context, event) => { 
         return {
           applicationID: event.value,
@@ -616,6 +652,13 @@ const reactlyMachine = createMachine(
           appProps
         };
       }),
+      assignApplicationIDByName: assign((context, event) => {
+        const { applicationList } = context;
+        const app = applicationList.find(f => f.path === event.appname);
+        return {
+          applicationID: app.ID,
+        };
+      }),
       assignApplicationID: assign((context, event) => {
         return {
           applicationID: event.value,
@@ -626,21 +669,20 @@ const reactlyMachine = createMachine(
   }
 );
 
-export const useReactly = () => {
-  const location = useLocation();
+export const useReactly = () => { 
   const { getItems } = useDynamoStorage();
-  const { event, id, subid } = useParams();
+  const { appname, pagename, event, id, subid } = useParams();
   const [state, send] = useMachine(reactlyMachine, {
     services: {
       getApplicationList: async () => {
-          registrar.register({
-            instance: uniqueId(),
-            machine: reactlyMachine.id,
-            args: {
-              state, send
-            }
+          // registrar.register({
+          //   instance: uniqueId(),
+          //   machine: reactlyMachine.id,
+          //   args: {
+          //     state, send
+          //   }
             
-          })
+          // })
 
         return await getApplicationNames();
       },
@@ -810,6 +852,14 @@ export const useReactly = () => {
   }
 
   React.useEffect(() => {
+    if (appname) {
+      console.log ('LOOKUP', { appname, pagename })
+       send({
+        type: 'LOOKUP',
+        appname, pagename
+      });
+      return
+    }
     if (event) {
        send({
         type: event.toUpperCase(),
@@ -819,7 +869,7 @@ export const useReactly = () => {
       return
     }
     send('CLOSE'); 
-  }, [event, id, location, subid, send])
+  }, [event, id, appname, pagename, subid, send])
 
   const getAppState = async () => {
     return state.context.appProps;

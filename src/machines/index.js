@@ -1,3 +1,4 @@
+import { useRepeater } from './repeaterMachine';
 import { useListBinder } from './listBinderMachine';
 import { useCarousel } from './carouselMachine';
 import { useRegistrar } from './registrarMachine';
@@ -15,6 +16,7 @@ import { useMenu } from './menuMachine';
 import { useAutoselect } from './autoselectMachine';
 
 export {
+  useRepeater,
   useListBinder,
   useCarousel,
   useRegistrar,

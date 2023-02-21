@@ -19,6 +19,19 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Application />} />
+        <Route
+          path="/edit/:appname"
+          element={<Application />}
+        />
+        <Route
+          path="/edit/:appname/:pagename"
+          element={<Application />}
+        />
+        <Route
+          path="/edit/:appname/:pagename/*"
+          element={<Application />}
+        />
+        
         <Route path="/apps/:event" element={<Application />} /> 
         <Route path="/apps/:event/:id" element={<Application />} /> 
         <Route path="/apps/:event/:id/:subid" element={<Application />} /> 

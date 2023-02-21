@@ -63,6 +63,7 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
           type: 'EXEC',
           events: handledEvents,
           eventProps: attributes, 
+          data: attributes, 
           pageProps: props.stateProps,
           appProps: props.appProps,
         }) 
