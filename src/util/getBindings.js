@@ -21,6 +21,6 @@ export const getBindings = (key, options) => {
 
   if (!pageProps) return scope
 
-  return pageProps[scope];
+  return pageProps[scope] || scope;
 
 }

@@ -429,6 +429,7 @@ export const useAudio = ({
         ComponentName,
         controller:  {
           play: () => send('PLAY'),
+          pause: () => send('PAUSE'),
           paused: state.matches('opened.paused')
         }
       })

@@ -479,7 +479,7 @@ const reactlyMachine = createMachine(
               ...newstate
             }
           } 
-          console.log ('%cresetContextStateJS', 'color: lime', appstate );
+          // console.log ('%cresetContextStateJS', 'color: lime', appstate );
           return appstate;
         }
  
@@ -490,7 +490,7 @@ const reactlyMachine = createMachine(
             ...newstate
           }
         };
-        console.log ('%cresetContextStateJS', 'color: cyan', newstate );
+        // console.log ('%cresetContextStateJS', 'color: cyan', newstate );
         return pagestate;
  
       }),
@@ -879,7 +879,7 @@ export const useReactly = () => {
 
   React.useEffect(() => {
     if (appname) {
-      console.log ('LOOKUP', { appname, pagename })
+      // console.log ('LOOKUP', { appname, pagename })
        send({
         type: 'LOOKUP',
         appname, pagename

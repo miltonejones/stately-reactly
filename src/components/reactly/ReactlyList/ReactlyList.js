@@ -18,18 +18,26 @@ const ListItem = styled(ListItemButton)(( {active, theme, selectedColor = 'prima
 
 const ReactlyList = (props) => {
   const { onItemClick, onSecondaryClick } = props;
-  const dataRows = !props.items ? [] : props.items;
-  const sortRows = !props.autoSort ? dataRows : dataRows.sort((a,b) => a.text.toLowerCase() > b.text.toLowerCase() ? 1 : -1);
+
+  const dataRows = !!props.items  && typeof props.items  === 'string' 
+    ? JSON.parse(props.items )
+    : props.items ;
+
+  const sortRows = dataRows; //!props.autoSort ? dataRows : dataRows.sort((a,b) => a.text.toLowerCase() > b.text.toLowerCase() ? 1 : -1);
 
   // const header = !props.heading ? null : <ListSubheader>{props.heading}</ListSubheader>
 
   if (!sortRows) {
-    return <em>No rows</em>
+    return <em>No rows<pre>
+    {/* {props.ComponentName} */}
+    {JSON.stringify(props, 0, 2)}
+  </pre></em>
   }
 
   if (!Array.isArray(sortRows)) {
     return <pre>
-      {JSON.stringify(sortRows)}
+      {/* {props.ComponentName} */}
+      {JSON.stringify(props, 0, 2)}
     </pre>
   }
 
@@ -73,10 +81,10 @@ const ReactlyList = (props) => {
       </ListItem>
 
      })}
-     ReactlyList Component
+     {/* ReactlyList Component
      <pre>
       {JSON.stringify(sortRows,0,2)}
-     </pre>
+     </pre> */}
    </List>
  );
 }

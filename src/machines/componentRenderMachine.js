@@ -203,6 +203,11 @@ const componentRenderMachine = createMachine({
       const properties = !args ? {} 
         : Object.keys(args).reduce((out, arg) => {
 
+          if (arg === 'items') {
+            out[arg] = args[arg];
+            return out;
+          }
+
           const bracketTest = /\{([^}]+)\}/g
 
           let deterpolatedText = args[arg];

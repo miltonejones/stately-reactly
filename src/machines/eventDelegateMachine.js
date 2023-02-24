@@ -206,11 +206,11 @@ const eventDelegateMachine = createMachine(
       })),
       assignNextEvent: assign((context) => {
         const { action } = context.events[context.event_index];
-        console.log(' :: assignNextEvent :: Executing %o', action)
+        // console.log(' :: assignNextEvent :: Executing %o', action)
         return { action };
       }),
       assignEventProps: assign((_, event) => {
-        console.log({ event })
+        // console.log({ event })
         return { 
           ...event,
           // eventProps: event.event
