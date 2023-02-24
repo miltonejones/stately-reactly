@@ -1,3 +1,4 @@
+import { useAudio } from './audioMachine';
 import { useRepeater } from './repeaterMachine';
 import { useListBinder } from './listBinderMachine';
 import { useCarousel } from './carouselMachine';
@@ -16,6 +17,7 @@ import { useMenu } from './menuMachine';
 import { useAutoselect } from './autoselectMachine';
 
 export {
+  useAudio,
   useRepeater,
   useListBinder,
   useCarousel,

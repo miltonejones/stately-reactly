@@ -23,6 +23,16 @@ const ReactlyList = (props) => {
 
   // const header = !props.heading ? null : <ListSubheader>{props.heading}</ListSubheader>
 
+  if (!sortRows) {
+    return <em>No rows</em>
+  }
+
+  if (!Array.isArray(sortRows)) {
+    return <pre>
+      {JSON.stringify(sortRows)}
+    </pre>
+  }
+
  return (
    <List {...props}>
      {sortRows?.map((item, i) => {

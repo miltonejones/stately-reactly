@@ -59,11 +59,15 @@ import ReactlyDrawer from "./ReactlyDrawer/ReactlyDrawer";
 import ReactlyList from "./ReactlyList/ReactlyList";
 import ReactlyCarousel from "./ReactlyCarousel/ReactlyCarousel";
 import ReactlyDatagrid from "./ReactlyDatagrid/ReactlyDatagrid";
+import ReactlyRepeater from "./ReactlyRepeater/ReactlyRepeater";
+import ReactlyInfoCard from "./ReactlyInfoCard/ReactlyInfoCard";
+import ReactlyAudioPlayer from "./ReactlyAudioPlayer/ReactlyAudioPlayer";
 
 const ReactlySpacer = () => <Box sx={{ flexGrow: 1 }} />;
 
 export const LibraryComponents = {
   Alert,
+  AudioPlayer: ReactlyAudioPlayer,
   AvatarGroup,
   Badge,
   BottomNavigation,
@@ -81,6 +85,7 @@ export const LibraryComponents = {
   ImageList,
   ImageListItem,
   ImageListItemBar,
+  InfoCard: ReactlyInfoCard,
   Switch,
   Tab,
   Tabs,
@@ -100,6 +105,7 @@ export const LibraryComponents = {
   Radio,
   RadioGroup,
   Rating,
+  Repeater: ReactlyRepeater,
   Select,
   Skeleton,
   Slider,

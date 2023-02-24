@@ -160,10 +160,10 @@ const ListTableInput = ({ onChange, application, value, setting }) => {
     <Nowrap hover variant="body2">{col}</Nowrap>
   </Flex>)}
  
-  {/* <pre>
-    {JSON.stringify(bindingProp.columnMap, 0, 2)}
+ <pre>
+    {JSON.stringify(bindingProp, 0, 2)}
   </pre>
-  <pre>
+   {/* <pre>
     {JSON.stringify(available, 0, 2)}
   </pre> */}
       </Layout>

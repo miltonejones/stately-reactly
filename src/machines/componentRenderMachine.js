@@ -3,10 +3,10 @@ import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react";
 import { getBindings } from '../util/getBindings';
 import { getSettings } from '../util/getSettings';
-import { objectReduce } from '../util/objectReduce';
+import { styleProps } from '../util/styleProps';
 import { AppStateContext } from '../context';
 import { findMatches } from '../util/findMatches';
-import { report } from '../util/report';
+// import { report } from '../util/report';
 
 // add machine code
 const componentRenderMachine = createMachine({
@@ -142,24 +142,30 @@ const componentRenderMachine = createMachine({
 
 
         const bindingObject = JSON.parse(args.bindings); 
-      report(bindingObject, `${component.ComponentName} bindings`);
+      // report(bindingObject, `${component.ComponentName} bindings`);
       //  console.log({bindingObject}, 'usePageResourceState')
         const columnMap = bindingObject.columnMap || Object.keys(bindingObject.bindings) 
         const typeMap = bindingObject.typeMap || {}
         // const id = bindingObject.resourceID;
-        const resource = datasets[bindingObject.resourceID]; //.find(f => f.resourceID === bindingObject.resourceID);
-
+        const resource = datasets[bindingObject.resourceID]; //.find(f => f.resourceID === bindingObject.resourceID); 
         const records = resource?.records  || resource;
 
         if (records?.map) {
           // console.log({ bindingObject })
+
+
+          
+
           const dataRows = records.map(record => {
             return columnMap.reduce((items, res) => {
 
               // const { settings } = typeMap[res] ?? {};
               // console.log ({ settings })
-
-              items[bindingObject.bindings[res]] = record[ res ]
+              if (bindingObject.columnMap) {
+                items[bindingObject.bindings[res]] = record[ res ]
+              } else {
+                items[res] = record[ res ]
+              }
               return items;
             }, {})
           });
@@ -257,8 +263,9 @@ const componentRenderMachine = createMachine({
     }),
     assignComponentStyles: assign ((context, event) => {
       const { component } = context; 
+      const styles = styleProps(component.styles);
       return {
-        styles: objectReduce(component.styles),
+        styles,
         color: "success"
       };
     }),

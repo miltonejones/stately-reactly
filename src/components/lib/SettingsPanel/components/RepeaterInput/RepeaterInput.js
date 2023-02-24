@@ -119,12 +119,12 @@ const RepeaterInput = ({ onChange, value, setting, application, component}) => {
     </Btn>
   </Flex>
    
-{/* 
+
    <pre>
      {JSON.stringify(repeater.bindingProp,0,2)}
      {JSON.stringify(boundProps,0,2)}
    </pre>
-   <pre>
+  {/*  <pre>
      {JSON.stringify(repeater.bindableProps,0,2)}
    </pre>
     <pre>

@@ -6,7 +6,7 @@ import { map } from './map';
 // import { report } from './report';
 import { shuffle } from './shuffle';
 
-export const createScriptOptions = (machine, send) => {
+export const createScriptOptions = (machine, send, refresh) => {
 
   const { selectedPage, stateProps, appProps } = machine.context;
 
@@ -22,11 +22,11 @@ export const createScriptOptions = (machine, send) => {
     //     ...updated
     //   }
 
-    // console.log ({ setState: {
-    //   updated, 
-    //   scope,
-    //   state: machine.value
-    // }});
+    console.log ("Executing %csetState", "color:cyan", { setState: {
+      updated, 
+      scope,
+      state: refresh()
+    }});
 
     // report(existingProps)
     // report(newstate)
@@ -51,31 +51,37 @@ export const createScriptOptions = (machine, send) => {
         const json = await response.json();  
         const rows = !(!!node && !!columns?.length) ? json : drillPath(json, node);
 
-        return rows;
-
-
+        return rows; 
       }
-    }
-
-      return false;
-
+    } 
+    return false; 
   }
 
-  const executeScriptByName = (scriptName, settings) => {
+  const executeScriptByName = (scriptName, data) => {
     const scriptList = getApplicationScripts(machine.context);
     const script = scriptList.find(f => f.name === scriptName);
     if (script) {
-      console.log ({ scriptName, script, settings})
+      console.log ("Executing %c%s", "color:orange", scriptName, { ...script, data, state: refresh() })
       return executeScript(script.ID, {
         scripts: scriptList, 
         selectedPage, 
-        data: settings,  
+        data,
         application,
         options,
         api
       }) 
     }
     console.log ("Could not find script '%s'", scriptName);
+  }
+
+  const execRefByName = (name, fn) => {
+    const { references } = machine.context;
+    const referenceID = Object.keys(references).find(d => references[d].ComponentName === name);
+    if (referenceID) {
+      !!fn && fn(references[referenceID].controller);
+      return;
+    } 
+    alert ("Could not find reference '" + name + "'")
   }
 
   const getResourceByName = (resourceName) => {
@@ -113,7 +119,7 @@ export const createScriptOptions = (machine, send) => {
 
     // getRef, 
     // getRefByName, 
-    // execRefByName: (name, fn) => execRefByName(name, fn, script.name),
+    execRefByName,
     shout: console.log,
     map,
     shuffle,

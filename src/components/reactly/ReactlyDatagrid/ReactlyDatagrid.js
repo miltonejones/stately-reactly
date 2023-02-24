@@ -2,27 +2,13 @@ import React from 'react';
 import { Table, TableHead, TableRow, TableCell, 
   TableBody, Box, styled, Link, Typography } from '@mui/material';   
 import { Flex, TextIcon } from '../../../styled';
+import { truncate } from '../../../util/truncate';
  
 const Layout = styled(Box)(({ theme }) => ({
  margin: theme.spacing(0)
 }));
  
-export const truncate = (value, length) => {
-  try {
-
-    if (!value.substr || !length) {
-      return value;
-    }
-    const over = value?.length && value.length > length;
-    return `${value.substr(0, length)}${over ? '...' : ''}`
-  } catch (ex) {
-    if (!value) {
-      return ''
-    }
-    return JSON.stringify (value);
-  }
-}
-  
+ 
 const ReactlyDatagrid = (props) => {
   const { onHeadClick, onCellClick, dataRows, resource, onRowClick, columnNames, columnMap, typeMap } = props;
 

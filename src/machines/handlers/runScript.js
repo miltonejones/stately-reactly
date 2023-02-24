@@ -8,7 +8,8 @@ export const useRunScript = (scriptOptions = {}) => {
     const { data, scripts, selectedPage, action } = context;  
     const { api, application, ...options } = scriptOptions;
     console.log ({
-      api: scriptOptions
+      scriptOptions,
+      data
     })
     return executeScript(action.target, { 
       scripts, 

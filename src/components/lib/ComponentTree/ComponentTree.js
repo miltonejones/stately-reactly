@@ -54,11 +54,11 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
     const handledEvents = events.filter(e => e.event === ev.name);
     if (handledEvents.length) {
       out[ev.name] = (e, attributes) => { 
-        console.clear();
-        console.log({
-          delegateProps: props.delegateProps,
-          attributes
-        })
+        // console.clear();
+        // console.log({
+        //   delegateProps: props.delegateProps,
+        //   attributes
+        // })
         delegate.send({
           type: 'EXEC',
           events: handledEvents,
@@ -77,11 +77,11 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
   }
 
   if (!allowChildren && !properties.Label && !properties.children) {
-    return <Tag sx={styles} style={styles} {...properties} {...handlers} ID={component.ID}/>
+    return <Tag sx={styles} style={styles} {...properties} {...handlers} ComponentName={component.ComponentName} ID={component.ID}/>
   }
 
   return (
-    <Tag sx={styles} {...properties}  {...handlers}  ID={component.ID}>
+    <Tag sx={styles} {...properties}  {...handlers}  ID={component.ID} ComponentName={component.ComponentName}>
       {properties.children || properties.Label || children}
     </Tag>
   );

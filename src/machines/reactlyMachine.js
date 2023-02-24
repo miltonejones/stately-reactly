@@ -2,7 +2,7 @@ import React from 'react';
 import { createMachine, assign } from 'xstate';
 import { useMachine } from '@xstate/react';
 import { useClientState } from ".";
-import { report } from '../util/report';
+// import { report } from '../util/report';
 import { assignProblem } from "../util/assignProblem";
 import { getApplicationNames, getPageByPath, setApplication,  getApplicationByID } from '../connector';
 
@@ -232,6 +232,7 @@ const reactlyMachine = createMachine(
                 initial: 'static',
                 states: {
                   static: { 
+                    // entry: () => console.log('Entering state %cstatic', 'color:yellow;font-weight:600'),
                     on: {
                       JSSTATE: {  
                         target: "reset",
@@ -240,6 +241,10 @@ const reactlyMachine = createMachine(
                       SETSTATE: { 
                         target: "reset",
                         actions: "resetContextState",
+                      },
+                      REFER: { 
+                        target: "reset",
+                        actions: "resetReferenceState",
                       },
                       MODAL: { 
                         target: "reset",
@@ -255,13 +260,14 @@ const reactlyMachine = createMachine(
                     }
                   },
                   reset: {
+                    // entry: () => console.log('Entering state %creset', 'color:yellow;font-weight:600'),
                     on: {
                       JSSTATE: {  
-                        // target: "static",
+                        target: "static",
                         actions: "resetContextStateJS",
                       },
                       SETSTATE: {  
-                        // target: "static",
+                        target: "static",
                         actions: "resetContextState",
                       },
                     },
@@ -432,7 +438,7 @@ const reactlyMachine = createMachine(
               ...props
             }
           } 
-          console.log ('%cresetContextState', 'color: lime', appstate );
+          // console.log ('%cresetContextState', 'color: lime', appstate );
           return appstate;
         }
  
@@ -443,22 +449,28 @@ const reactlyMachine = createMachine(
             ...props
           }
         };
-        console.log ('%cresetContextState', 'color: cyan', newstate );
+        // console.log ('%cresetContextState', 'color: cyan', newstate );
         return newstate;
  
       }),
 
 
       resetContextStateJS: assign((context, event) => { 
+        // console.log('%cresetContextStateJS', 'color:red;font-weight:900', { context,  event });
         const { appProps = {}, stateProps = {} } = context;
         const { updated, scope } = event;
         const existingProps = scope === 'application' ? appProps : stateProps;
+
+        // console.log('%cresetContextStateJS', 'color:pink;font-style:italic', { scope, existingProps });
+        
         const newstate = typeof updated === 'function' 
-        ? updated(existingProps)
-        : updated
+            ? updated(existingProps)
+            : updated
   
-        report(existingProps, 'existing state: ' + scope)
-        report(newstate, 'proposed state: ' + scope)
+        // console.log('%cresetContextStateJS', 'color:yellow;font-style:italic', { newstate });
+        
+        // report(existingProps, 'existing state: ' + scope)
+        // report(newstate, 'proposed state: ' + scope)
 
         if (scope === 'application') {
           const appstate = {
@@ -492,6 +504,20 @@ const reactlyMachine = createMachine(
           datasets: {
             ...datasets,
             [ID]: dataset
+          }
+        }
+      }),
+      resetReferenceState: assign((context, event) => { 
+        const { references = {} } = context;
+        const { ID, ComponentName, controller } = event;
+
+        return {
+          references: {
+            ...references,
+            [ID]: {
+              ComponentName, 
+              controller
+            }
           }
         }
       }),
@@ -762,7 +788,7 @@ export const useReactly = () => {
     })
   }
 
-  const scriptOptions = createScriptOptions(state, send);
+  const scriptOptions = createScriptOptions(state, send, () => state.value);
 
   const delegateProps =  {
     application,
