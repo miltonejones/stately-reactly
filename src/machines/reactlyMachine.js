@@ -439,7 +439,7 @@ const reactlyMachine = createMachine(
               ...props
             }
           } 
-          // console.log ('%cresetContextState', 'color: lime', appstate );
+           console.log ('%cresetContextState', 'color: lime', appstate, props );
           return appstate;
         }
  
@@ -450,7 +450,7 @@ const reactlyMachine = createMachine(
             ...props
           }
         };
-        // console.log ('%cresetContextState', 'color: cyan', newstate );
+         console.log ('%cresetContextState', 'color: cyan', newstate );
         return newstate;
  
       }),
@@ -753,9 +753,9 @@ export const useReactly = () => {
   const routeProps = getRouteParams(routes["*"], selectedPage?.parameters);
 
 
-  const setState = (scope, fn) => {
-    // const { } = state.context;
+  const setState = (scope, fn) => { 
     const props = fn(appProps, stateProps)
+    // console.log ('%cSTATE', 'color:cyan', state.value, { props })
     send({
       type: 'SETSTATE',
       props,

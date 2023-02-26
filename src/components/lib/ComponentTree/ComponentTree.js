@@ -23,7 +23,7 @@ const Info = ({ tag: Tag, debug, children, ...props }) => {
 </pre>}</>
 }
 
-const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, component, ...props }) => {
+const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, component, show, ...props }) => {
   const renderer = useComponentRender({
     component,
     pageProps: props.stateProps,
@@ -67,7 +67,7 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
   const handlers = supportedEvents.reduce((out, ev) => {   
     const handledEvents = events.filter(e => e.event === ev.name);
     if (handledEvents.length) {
-      out[ev.name] = (e, attributes) => {  
+      out[ev.name] = (e, attributes) => {   
         delegate.send({
           type: 'EXEC',
           events: handledEvents,
@@ -86,11 +86,11 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
   }
 
   if (!allowChildren && !properties.Label && !properties.children) {
-    return <Info tag={Tag} sx={styles} style={styles} {...properties} {...handlers} ComponentName={component.ComponentName} ID={component.ID}/>
+    return <Info debug={show} tag={Tag} sx={styles} style={styles} {...properties} {...handlers} ComponentName={component.ComponentName} ID={component.ID}/>
   }
 
   return (
-    <Info tag={Tag} sx={styles} {...properties}  {...handlers}  ID={component.ID} ComponentName={component.ComponentName}>
+    <Info tag={Tag} sx={styles} {...properties}  {...handlers} debug={show} ID={component.ID} ComponentName={component.ComponentName}>
       {properties.children || properties.Label || children}
     </Info>
   );
@@ -116,7 +116,7 @@ const ComponentData = (props) => {
   if (tag) {
     return (
       <Specimen
-        tag={tag}
+        tag={tag} 
         delegateProps={props.delegateProps}
         datasets={props.datasets} 
         application={props.application}

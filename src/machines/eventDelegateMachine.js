@@ -36,6 +36,7 @@ const eventDelegateMachine = createMachine(
             },
           },
           waiting: {
+            entry: () => console.log ('waiting'),
             description: 'Wait for component events',
             on: {
               EXEC: {
@@ -45,6 +46,7 @@ const eventDelegateMachine = createMachine(
             },
           },
           reload: {
+            entry: () => console.log ('reload'),
             invoke: {
               src: 'loadApplicationProps',
               onDone: [
@@ -73,6 +75,13 @@ const eventDelegateMachine = createMachine(
                 },
               },
               exec: {
+                entry: (context) => console.log (
+                  'exec %c%s', 
+                  'color:yellow;text-transform: uppercase', 
+                  context.action?.type, 
+                  context.action?.target, 
+                  context.event_index
+                  ),
                 after: {
                   5: [
                     {

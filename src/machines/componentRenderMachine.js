@@ -46,6 +46,9 @@ const componentRenderMachine = createMachine({
           initial: "refreshing",
           states: {
             refreshing: {
+              entry: (context) => context.component?.ComponentType === 'Slider' && 
+                console.log('updating %c%s', 'color:yellow', 
+                  context.component?.ComponentName, context.component?.ComponentType),
               invoke: {
                 src: "getDefinitions",
                 onDone: [
@@ -200,6 +203,9 @@ const componentRenderMachine = createMachine({
         })
       }));
 
+      component.ComponentType === 'Slider' &&
+        console.log ('%cargs', 'color: cyan', { args })
+
       const properties = !args ? {} 
         : Object.keys(args).reduce((out, arg) => {
 
@@ -239,12 +245,13 @@ const componentRenderMachine = createMachine({
 
         }, {})
 
-      // console.log ({
-      //   name: component.ComponentName,
-      //   appProps,
-      //   pageProps,
-      //   properties
-      // })
+        component.ComponentType === 'Slider' &&
+          console.log ({
+            name: component.ComponentName,
+            appProps,
+            pageProps,
+            properties
+          });
 
       return {
         properties,

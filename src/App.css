@@ -2,14 +2,36 @@
   box-sizing: border-box;
 }
 
+/* 
+"Sm/0.5",
+"Xs/0.25",
+"Lg/1",
+"Xxl/2",
+"Md/0.75", 
+"Xxs/0.125", 
+"Xl/1.5",
+
+"3xl/2.5" 
+
+*/
 
 body {
   height: 100vh;
   margin: 0;
   overflow: hidden;
 
-  --sm-0-5: 4px;
+  --theme-spacing: 8px;
+
+  --sm-0-5: calc(var(--theme-spacing) * 0.5);
+  --xxs-0-125: calc(var(--theme-spacing) * 0.125);
+  --xs-0-25: calc(var(--theme-spacing) * 0.25);
+  --lg-1: calc(var(--theme-spacing) * 1);
+  --xl-1-5: calc(var(--theme-spacing) * 1.5);
+  --xxl-2:  calc(var(--theme-spacing) * 2);
+  --md-0-75:  calc(var(--theme-spacing) * 0.75);
 }
+
+
 
 .App {
   height: 100vh;
