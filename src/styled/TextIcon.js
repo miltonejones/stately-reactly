@@ -11,7 +11,7 @@ const TextIcon = ({ icon , ...props}) => {
     return <i />
   } 
  
-  return <>:: object?</>
+  return <i/>
 } 
 
 export default TextIcon;

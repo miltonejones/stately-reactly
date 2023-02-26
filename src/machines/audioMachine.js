@@ -30,12 +30,25 @@ export const audioMachine = createMachine(
           src: "loadAudio",
           onDone: [
             {
-              target: "idle.loaded",
+              target: "#audio_player.equip",
               actions: "assignResultsToContext",
             },
           ],
         },
       },
+
+      equip: {
+        invoke: {
+          src: 'loadMethods',
+          onDone: [
+            {
+              target: "#audio_player.idle.loaded",
+              actions: assign((_, event) => event.data),
+            },
+          ],
+        }
+      },
+
       idle: {
         initial: "loaded",
         states: {
@@ -187,10 +200,18 @@ export const audioMachine = createMachine(
                 target: "#audio_player.replay",
                 actions: ["assignSourceToContext"],
               },
-              END: {
-                target: "#audio_player.replay",
-                actions: "assignNextTrackToContext",
-              },
+              END: [
+                {
+                  target: "#audio_player.replay",
+                  cond: context => !!context.trackList,
+                  actions: "assignNextTrackToContext",
+                },
+                {
+
+                  target: "#audio_player.idle",
+                  actions: "clearPlayer",
+                }
+              ],
               QUEUE: {
                 actions: "addToQueue",
               },
@@ -281,6 +302,8 @@ export const audioMachine = createMachine(
       }),
       assignProgressToContext: assign((context, event) => {
         const { currentTime, duration } = event;
+        const { onProgress, player } = context;
+
         const current_time_formatted = !currentTime
           ? "0:00"
           : moment.utc(currentTime * 1000).format("mm:ss");
@@ -288,13 +311,23 @@ export const audioMachine = createMachine(
         const duration_formatted = !duration
           ? "0:00"
           : moment.utc(duration * 1000).format("mm:ss");
-        return {
+
+        const message = {
           currentTime,
           current_time_formatted,
           duration_formatted,
           duration,
           progress: (currentTime / duration) * 100,
         };
+        
+
+
+        onProgress && onProgress(player, message);
+          
+        // console.log('%ctimeupdate', `color: ${!!onProgress?"yellow":"red"};text-transform: capitalize`, message);
+
+
+        return message;
       }),
       assignCoordsToContext: assign((context, event) => {
         return {
@@ -392,30 +425,42 @@ export const useAudio = ({
         throw new Error(e);
       }
     },
+
+    loadMethods: async () => ({
+      onPlayerStart,
+      onPlayerStop,
+      onProgress, 
+      onPlayerEnded,
+    }),
+
     audioStarted: async (context) => true, //onPlayerStart && onPlayerStart(context.artistFk),
 
     loadAudio: async (context) => {
       const audio = new Audio();
 
       audio.addEventListener("play", () => {
+        console.log('%cPLAY', 'color: yellow;text-transform: capitalize');
         onPlayerStart && onPlayerStart(audio);
       });
 
       audio.addEventListener("pause", () => {
+        console.log('%cpause', 'color: yellow;text-transform: capitalize');
         onPlayerStop && onPlayerStop(audio);
       });
 
       audio.addEventListener("ended", () => {
-        onPlayerEnded && onPlayerEnded(audio)
+        console.log('%cended', 'color: yellow;text-transform: capitalize');
+        onPlayerEnded && onPlayerEnded(audio);
         send("END");
       });
 
       audio.addEventListener("error", () => {
+        console.log('%cerror', 'color: yellow;text-transform: capitalize');
         send("ERROR");
       });
 
       audio.addEventListener("timeupdate", () => { 
-       handleTimeUpdate(audio, onProgress)
+      //  handleTimeUpdate(audio, onProgress);
         send({
           type: "PROGRESS",
           currentTime: audio.currentTime,
@@ -430,9 +475,10 @@ export const useAudio = ({
         controller:  {
           play: () => send('PLAY'),
           pause: () => send('PAUSE'),
-          paused: state.matches('opened.paused')
+          paused: !1, //context.player.paused
         }
-      })
+      });
+
       return audio;
     },
   };
@@ -447,25 +493,25 @@ export const useAudio = ({
 }
 
 
-const handleTimeUpdate = (aux, onProgress) => {
-  if (!aux) return;
-  // if (aux.currentTime !== parseInt(aux.currentTime)) return;
-   const ms = (aux.currentTime / aux.duration) ;
-   const progress = ms * 100;
-  const duration_formatted = moment
-    .utc(aux.duration * 1000)
-    .format("mm:ss");
-  const current_time_formatted = moment
-    .utc(aux.currentTime * 1000)
-    .format("mm:ss");
+// const handleTimeUpdate = (aux, onProgress) => {
+//   if (!aux) return;
+//   // if (aux.currentTime !== parseInt(aux.currentTime)) return;
+//    const ms = (aux.currentTime / aux.duration) ;
+//    const progress = ms * 100;
+//   const duration_formatted = moment
+//     .utc(aux.duration * 1000)
+//     .format("mm:ss");
+//   const current_time_formatted = moment
+//     .utc(aux.currentTime * 1000)
+//     .format("mm:ss");
 
 
-  onProgress &&
-    onProgress(aux, {
-      currentTime: aux.currentTime,
-      duration: aux.duration,
-      progress,
-      duration_formatted,
-      current_time_formatted,
-    });
-};
+//   onProgress &&
+//     onProgress(aux, {
+//       currentTime: aux.currentTime,
+//       duration: aux.duration,
+//       progress,
+//       duration_formatted,
+//       current_time_formatted,
+//     });
+// };

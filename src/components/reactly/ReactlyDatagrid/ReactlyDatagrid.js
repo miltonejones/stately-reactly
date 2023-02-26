@@ -32,6 +32,19 @@ const ReactlyDatagrid = (props) => {
 
   const selected_indicator_col = props.selected_indicator_col || 0;
 
+  const getRow = index => {
+    const source = resource.records || resource;
+    return source[index]
+  }
+
+  const getRowProp = (index, prop) => {
+    const row = getRow(index);
+    if (row) {
+      return row[prop];
+    }
+    return index + '?'
+  }
+
   return (
     <Layout data-testid="test-for-ReactlyDatagrid">
 <Table {...props}>
@@ -65,20 +78,20 @@ const ReactlyDatagrid = (props) => {
               onClick={e => {
                 
                 onCellClick && onCellClick(e, {
-                  ID: !props.selectedColumn ? i : resource.records[i][props.selectedColumn],
+                  ID: !props.selectedColumn ? i : getRowProp(i, props.selectedColumn),
                   row: i,
                   cell: k,
                   column: columnMap[k],
-                  ...resource,
-                  ...resource.records[i]
+                  // ...resource,
+                  ...getRow(i)
                 });
 
 
                 onRowClick && onRowClick(e, {
-                  ID: !props.selectedColumn ? i : resource.records[i][props.selectedColumn],
+                  ID: !props.selectedColumn ? i : getRowProp(i, props.selectedColumn),
                   row: i, 
-                  ...resource,
-                  ...resource.records[i]
+                  // ...resource,
+                  ...getRow(i)
                 })
 
               }}

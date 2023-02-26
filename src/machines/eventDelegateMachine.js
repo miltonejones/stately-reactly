@@ -277,10 +277,10 @@ export const useEventDelegate = (props) => {
           const key = action.terms[term]; 
 
           const routeProps = getRouteParams(routeParams["*"], selectedPage?.parameters);
-          !!routeParams["*"] && console.log ({
-            routeProps,
-            routeParams
-          })
+          // !!routeParams["*"] && console.log ({
+          //   routeProps,
+          //   routeParams
+          // })
           const value = getBindings(key, {
             appProps,
             pageProps,

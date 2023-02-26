@@ -1,6 +1,7 @@
 import React from "react";
 import { Stack, Card, Popover, Box } from "@mui/material";
 import { Nowrap, SectionHead, Btn, Columns } from "../../../styled";
+// import { Tooltip } from '@mui/material';
 import { useMenu } from "../../../machines";
 import { sortByOrder } from "../../../util/sortByOrder";
 import { AppStateContext } from "../../../context";
@@ -8,6 +9,19 @@ import { LibraryComponents } from "../../reactly";
 import { getBindings } from "../../../util/getBindings";
 import { useComponentRender } from "../../../machines";
 import { useEventDelegate } from "../../../machines/eventDelegateMachine";
+
+const Info = ({ tag: Tag, debug, children, ...props }) => {
+  if (!children) {
+    return <>
+    <Tag {...props} />
+    {!!debug && <pre>{JSON.stringify(props, 0, 2)}</pre>}
+    </>
+  }
+  return <><Tag {...props}>{children}</Tag>
+  {!!debug && <pre>
+  {JSON.stringify(props, 0, 2)}
+</pre>}</>
+}
 
 const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, component, ...props }) => {
   const renderer = useComponentRender({
@@ -53,12 +67,7 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
   const handlers = supportedEvents.reduce((out, ev) => {   
     const handledEvents = events.filter(e => e.event === ev.name);
     if (handledEvents.length) {
-      out[ev.name] = (e, attributes) => { 
-        // console.clear();
-        // console.log({
-        //   delegateProps: props.delegateProps,
-        //   attributes
-        // })
+      out[ev.name] = (e, attributes) => {  
         delegate.send({
           type: 'EXEC',
           events: handledEvents,
@@ -77,13 +86,13 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
   }
 
   if (!allowChildren && !properties.Label && !properties.children) {
-    return <Tag sx={styles} style={styles} {...properties} {...handlers} ComponentName={component.ComponentName} ID={component.ID}/>
+    return <Info tag={Tag} sx={styles} style={styles} {...properties} {...handlers} ComponentName={component.ComponentName} ID={component.ID}/>
   }
 
   return (
-    <Tag sx={styles} {...properties}  {...handlers}  ID={component.ID} ComponentName={component.ComponentName}>
+    <Info tag={Tag} sx={styles} {...properties}  {...handlers}  ID={component.ID} ComponentName={component.ComponentName}>
       {properties.children || properties.Label || children}
-    </Tag>
+    </Info>
   );
 };
 

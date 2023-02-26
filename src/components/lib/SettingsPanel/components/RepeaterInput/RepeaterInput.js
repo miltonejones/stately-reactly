@@ -66,7 +66,7 @@ const RepeaterInput = ({ onChange, value, setting, application, component}) => {
 
   const resource = application?.resources?.find(res => res.ID === bindingProp?.resourceID); 
   const boundProps = !repeater.bindingProp?.bindings ? [] : Object.keys(repeater.bindingProp.bindings);
-  const openProps = !resource.columns  ? [] : resource.columns.filter(prop => !boundProps.find(f => f === prop))
+  const openProps = !resource?.columns  ? [] : resource.columns.filter(prop => !boundProps.find(f => f === prop))
 
  return (
    <Layout>
@@ -120,10 +120,10 @@ const RepeaterInput = ({ onChange, value, setting, application, component}) => {
   </Flex>
    
 
-   <pre>
+   {/* <pre>
      {JSON.stringify(repeater.bindingProp,0,2)}
      {JSON.stringify(boundProps,0,2)}
-   </pre>
+   </pre> */}
   {/*  <pre>
      {JSON.stringify(repeater.bindableProps,0,2)}
    </pre>

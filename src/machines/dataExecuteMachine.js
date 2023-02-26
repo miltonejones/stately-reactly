@@ -25,7 +25,7 @@ const dataExecuteMachine = createMachine({
         onError: [
           {
             target: "start",
-            actions: assign((_, event) => console.log (event.message))
+            actions: assign((context, event) => console.log ('ERROR step %c%d', 'color: red', context.event_step, event.message))
           }
         ]
       }
@@ -36,16 +36,18 @@ const dataExecuteMachine = createMachine({
       on: {
         EXEC: {
           target: "execute",
-          actions: ["assignResource", "assignEventParams"],
+          actions: ["assignResource", "assignEventParams", assign(() => ({event_step: 0}))],
         },
         CLEAR: { 
           actions: assign({
-            response: null
+            response: null,
+            json: null,
+            event_step: 0
           })
         },
         TEST: {
           target: "#data_exec.execute.send_request",
-          actions: ["assignResource", "assignTestTerms"],
+          actions: ["assignResource", "assignTestTerms", assign(() => ({event_step: 0}))],
           description: "Preset params passed in with request",
         },
       },
@@ -176,6 +178,9 @@ const dataExecuteMachine = createMachine({
           },
         },
         parse_response: {
+          entry: [assign(context => ({
+            event_step: context.event_step + 1
+          })), () => console.log ('Transforming response')],
           description: "Resolve response into configured columns",
           invoke: {
             src: "transformResponse",
@@ -243,7 +248,7 @@ const dataExecuteMachine = createMachine({
 
     },
   },
-  context: { message: "" },
+  context: { message: "", event_step: 0 },
   predictableActionArguments: true,
   preserveActionOrder: true,
 },
@@ -267,20 +272,50 @@ const dataExecuteMachine = createMachine({
     assignSuccessMessage: assign(() => ({
       message: "The request was successful"
     })), 
-    assignResource: assign((_, event) => { 
-      return event
+    assignResource: assign((context, event) => { 
+      return {
+        ...event,
+        json: null,
+        event_step: context.event_step + 1
+      }
     }),
-    assignEventParams:  assign((_, event) => ({
-      eventProps: event.eventProps
+    assignEventParams:  assign((context, event) => ({
+      eventProps: event.eventProps,
+      event_step: context.event_step + 1
     })),
-    assignTestTerms:  assign((_, event) => ({
-      terms: event.terms
+    assignTestTerms:  assign((context, event) => ({
+      terms: event.terms,
+      event_step: context.event_step + 1
     })),
-    assignResponse:  assign((_, event) => ({
-      ...event,
-      response: event.data
-    })),
-    assignRequest:  assign((context, event) => ({ 
+    assignResponse:  assign((context, event) => {
+      const { node, columns, ID } = context.resource;  
+      const json = event.data;
+      console.log ('SETTING RESPONSE: step %c%d', 'color: lime', context.event_step, {
+        response: event.data,
+        ID, 
+      })
+
+      const isGetRequest = context.resource.method === "GET"; 
+      const rows = !(!!node && !!columns?.length) ? json : drillPath(json, node);
+
+      const collated = !isGetRequest || !rows || !rows?.map
+        ? json
+        : rows?.map((row) =>
+            columns.reduce((items, res) => {
+              items[res] = row[res];
+              return items;
+            }, {})
+          );
+
+      return { 
+        response: collated,
+        json: context.json || event.data,
+        ID,
+        event_step: context.event_step + 1
+      }
+    }),
+    assignRequest:  assign((context, event) => ({  
+      event_step: context.event_step + 1,
       requestOptions: {
         method: context.resource.method,
         body: JSON.stringify(event.data),
@@ -317,7 +352,8 @@ const dataExecuteMachine = createMachine({
       return {
         endpoint,
         node, columns,
-        requestOptions: null
+        requestOptions: null,
+        event_step: context.event_step + 1
       }
 
 
@@ -354,7 +390,11 @@ export const useDataExecute = ({
         appProps,
         pageProps,
       }),
-      responseReceived: async (context) => { 
+      responseReceived: async (context) => {  
+        console.log ('SENDING RESPONSE step %c%d', 'color: red', context.event_step, {
+          response: context.response,
+          json: context.json, 
+        })
         handleResponse && handleResponse(context.resource.ID, context.response); 
       },
       transformRequest: async (context) => {
@@ -383,35 +423,53 @@ export const useDataExecute = ({
 
       execRequestEvents: async (context) => { 
         const { resource, eventType } = context;  
-        const { events = [] } = resource;
+        const { ID, events = [] } = resource;
         const requestEvents = events.filter(f => f.event === eventType);
         if (requestEvents?.length) {
-          console.log ({ 
-            [resource.name]: requestEvents, 
+          console.log ('Events for %c%s', 'color:lime', resource.name, { 
+            [eventType]: requestEvents, 
             context, 
             state: dataHandler.state.value, 
             index: dataHandler.event_index 
           });
-  
-          dataHandler.send({
+
+          const message = {
             type: 'EXEC',
             ...props,
-            data: context.response,
+            data: context.json,
             events: requestEvents,
-          });
+          };
+
+          console.log ('SENDING REQUEST: step %c%d', 'color: lime', context.event_step, { ID, message });
+  
+          dataHandler.send(message);
         }
 
         return true;
       },
 
       executeRequest: async (context) => {
-        const { endpoint, node, columns, requestOptions } = context;  
+        const { endpoint,  requestOptions } = context;  
         const response = await fetch(endpoint, requestOptions);
+        // const isGetRequest = resource.method === "GET";
 
         const json = await response.json();  
-         const rows = !(!!node && !!columns?.length) ? json : drillPath(json, node);
+        return json;
+
+
+        //  const rows = !(!!node && !!columns?.length) ? json : drillPath(json, node);
         
-        return node.indexOf('/') > 0 ? rows : json;
+        //     const collated = !isGetRequest || !rows || !rows?.map
+        //     ? json
+        //     : rows?.map((row) =>
+        //         columns.reduce((items, res) => {
+        //           items[res] = row[res];
+        //           return items;
+        //         }, {})
+        //       );
+
+
+        // return collated; // node.indexOf('/') > 0 ? rows : json;
       }
     },
   }); 

@@ -8,12 +8,12 @@ import { Nowrap, Btn, Flex, BorderButton, typeIcons, Spacer } from '../../../sty
  
 const Layout = styled(Box)(({ theme }) => ({
   minHeight: 52,
- margin: theme.spacing(0),
- display: 'flex',
- alignItems: 'center',
- gap: theme.spacing(1),
- padding: theme.spacing(0, 1),
- borderBottom: 'solid 1px ' + theme.palette.divider,
+  margin: theme.spacing(0),
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  padding: theme.spacing(0, 1),
+  borderBottom: 'solid 1px ' + theme.palette.divider,
 }));
 
 const AddressBar = styled(Box)(({ theme }) => ({
@@ -26,12 +26,17 @@ const AddressBar = styled(Box)(({ theme }) => ({
   // gap: theme.spacing(1),
   display: 'flex',
   alignItems: 'center'
+}));
+
+const B = styled('b')(({ theme }) => ({
+  color: theme.palette.success.main
 }))
  
-const AppBar = ({ showJSON, send, state, application, selectedPage = {}, active_machine, navigate }) => {
+const AppBar = ({ showJSON, send, state, routeProps, application, selectedPage = {}, active_machine, navigate }) => {
   const { parameters = {} } = selectedPage ?? {};
-  const paramKeys = Object.values(parameters).length 
-    ? <>/<b>{Object.values(parameters).join('/')}</b></>
+  const params = !!routeProps && Object.keys(routeProps).length ? routeProps : parameters;
+  const paramKeys = Object.values(params).length 
+    ? <>/<B>{Object.values(params).join('/')}</B></>
     : ""
   return (
    <Layout data-testid="test-for-AppBar">
@@ -44,7 +49,7 @@ const AppBar = ({ showJSON, send, state, application, selectedPage = {}, active_
           <Typography variant="body2">Menu</Typography>
         </Flex>
         <Box onClick={() => navigate('/')}> {typeIcons.back}</Box>
-        
+        {/* [{JSON.stringify(routeProps)}] */}
         <AddressBar>
           <Nowrap width="fit-content" sx={{mr: 1}} bold variant="caption">URL</Nowrap>
           <Nowrap width="min-content" muted variant="body2">/app/{application.path}</Nowrap>

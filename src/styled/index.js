@@ -1,3 +1,4 @@
+import ChipTextField from './ChipTextField';
 import Check from './Check';
 import TextIcon from './TextIcon';
 import Columns from './Columns';
@@ -36,6 +37,7 @@ export const typeIcons = {
 };
 
 export {
+  ChipTextField,
   Check,
   TextIcon,
   Columns,

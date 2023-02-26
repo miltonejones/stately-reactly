@@ -154,7 +154,7 @@ const dataEventMachine = createMachine({
     }),
     assignEventProps: assign((_, event) => {
       const { application, events, scripts, selectedPage, data } = event;
-      console.log ('Assigning event props', { events })
+     console.log ('Assigning event props', { events })
       return {
         application, events, scripts, selectedPage, data
       }
@@ -170,7 +170,7 @@ const dataEventMachine = createMachine({
   }
 
 });
-
+ 
 export const useDataEvent = (props) => {
 
   const { runScript } = useRunScript(props.scriptOptions);

@@ -16,12 +16,20 @@ const ListItem = styled(ListItemButton)(( {active, theme, selectedColor = 'prima
   backgroundColor: !active ? 'white' : (theme.palette[selectedColor]||theme.palette.primary).main
 }))
 
+const createRows = items => {
+  try {
+    return !!items  && typeof items  === 'string' 
+    ? JSON.parse(items )
+    : items ;
+  } catch (ex) {
+    return false;
+  }
+}
+
 const ReactlyList = (props) => {
   const { onItemClick, onSecondaryClick } = props;
 
-  const dataRows = !!props.items  && typeof props.items  === 'string' 
-    ? JSON.parse(props.items )
-    : props.items ;
+  const dataRows = createRows(props.items)
 
   const sortRows = dataRows; //!props.autoSort ? dataRows : dataRows.sort((a,b) => a.text.toLowerCase() > b.text.toLowerCase() ? 1 : -1);
 

@@ -16,6 +16,7 @@ import { useConnection } from './connectionMachine';
 import { useEventDelegate } from './eventDelegateMachine';
 import { createScriptOptions } from '../util/createScriptOptions';
 import { useRegistrar } from './registrarMachine'; 
+import { getRouteParams } from '../util/getRouteParams';
 // import { useEventHandler } from './eventHandlerMachine'; 
 
 const reactlyMachine = createMachine(
@@ -697,7 +698,8 @@ const reactlyMachine = createMachine(
 
 export const useReactly = () => { 
   const { getItems } = useDynamoStorage();
-  const { appname, pagename, event, id, subid } = useParams();
+  const { appname, pagename, event, id, subid, ...routes } = useParams();
+ 
   const [state, send] = useMachine(reactlyMachine, {
     services: {
       getApplicationList: async () => {
@@ -748,6 +750,7 @@ export const useReactly = () => {
   const { stateProps, appProps, application, selectedPage, library  } = state.context;
   const componentParent = selectedPage || application;
   const registrar = useRegistrar();
+  const routeProps = getRouteParams(routes["*"], selectedPage?.parameters);
 
 
   const setState = (scope, fn) => {
@@ -792,6 +795,7 @@ export const useReactly = () => {
 
   const delegateProps =  {
     application,
+    routeProps,
     scripts: getApplicationScripts(),
     selectedPage,
     setState,
@@ -921,6 +925,7 @@ export const useReactly = () => {
     handleResponse,
     delegateProps,
     // eventHandlerPane,
+    routeProps,
     delegate,
     registrar,
     connectionPane,

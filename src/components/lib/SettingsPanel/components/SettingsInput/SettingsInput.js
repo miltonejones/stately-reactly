@@ -1,10 +1,11 @@
 import React from 'react'; 
 import { Stack, Switch, MenuItem } from '@mui/material';
-import { Flex, IconTextField, Nowrap, PillMenu, TextIcon, IconSelect } from "../../../../../styled";
+import { Flex, ChipTextField, IconTextField, Nowrap, PillMenu, TextIcon, IconSelect } from "../../../../../styled";
 import BindMenu from '../BindMenu/BindMenu';
 import StateInput from '../StateInput/StateInput'; 
 import ListTableInput from '../ListTableInput/ListTableInput';
 import RepeaterInput from '../RepeaterInput/RepeaterInput';
+import ListBuilderInput from '../ListBuilderInput/ListBuilderInput';
   
  
 function SettingsInput ({ component, setting, pageID, handleBind, handleAdd, handleChange, configType, ...props }) { 
@@ -29,6 +30,8 @@ function SettingsInput ({ component, setting, pageID, handleBind, handleAdd, han
   const binding = component.boundProps?.find(b => b.attribute === setting.label); 
   const inputProp = configType === "Styles" ? style?.Value : option?.SettingValue; 
 
+  const TextInput = setting.type === 'chip' ? ChipTextField : IconTextField;
+
   // display BOUND values when bindings are present
   if (binding) {
     return <> 
@@ -43,6 +46,15 @@ function SettingsInput ({ component, setting, pageID, handleBind, handleAdd, han
     </>
   }
 
+  if ('listbuilder' === setting.type) {
+    return <ListBuilderInput 
+              onChange={e => handleInputChange(setting.label, e)}
+              component={component} 
+              setting={setting} 
+              {...props} 
+              value={inputProp} />
+  }
+  
   if ('repeatertable' === setting.type) {
     return <RepeaterInput 
               onChange={e => handleInputChange(setting.label, e)}
@@ -110,18 +122,17 @@ function SettingsInput ({ component, setting, pageID, handleBind, handleAdd, han
     <Stack sx={{p: t => t.spacing(0.5, 0)}}>
       
       <Nowrap variant="caption">{setting.title}[{setting.type}]</Nowrap>
-      <IconTextField 
+      <TextInput 
         size="small"
         onChange={e => handleInputChange(setting.label, e.target.value)}
         autoComplete="off" 
         endIcon={<BindMenu label={setting.label} offset={!!types?.length}/>}
-        select={!!types?.length} 
-
+        select={!!types?.length}  
         value={inputProp}
       >
         {Array.isArray(types) && types?.map(type => <MenuItem value={type}>{type}</MenuItem>)}
 
-      </IconTextField>
+      </TextInput>
  
     </Stack>
   )

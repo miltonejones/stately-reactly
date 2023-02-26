@@ -6,14 +6,26 @@ const Layout = styled(Box)(({ theme }) => ({
  margin: theme.spacing(0)
 }));
  
-const ReactlyAudioPlayer = (props) => {
-  const audio = useAudio(props)
+const ReactlyAudioPlayer = ({onProgress, ...props}) => {
+
+  const audio = useAudio({
+    ...props,
+    onProgress: (event, options) => {
+      // console.log ('%cprogress', 'color:red', options);
+      onProgress(event, options);
+    }
+  })
+  const { current_time_formatted } =  audio.state.context;
   return (
     <Layout data-testid="test-for-ReactlyAudioPlayer">
       {JSON.stringify(audio.state.value)}
-      <pre>
-      {JSON.stringify(props)}
-      </pre>
+      [{current_time_formatted}]
+      {/* {!!props.onPlayerEnded && <pre>
+        {props.onPlayerEnded.toString()}
+        </pre>} */}
+      {/* <pre>
+      {JSON.stringify(props,0,2)}
+      </pre> */}
     </Layout>
   );
 }
