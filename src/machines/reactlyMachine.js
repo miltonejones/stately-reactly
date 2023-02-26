@@ -439,7 +439,7 @@ const reactlyMachine = createMachine(
               ...props
             }
           } 
-           console.log ('%cresetContextState', 'color: lime', appstate, props );
+          //  console.log ('%cresetContextState', 'color: lime', appstate, props );
           return appstate;
         }
  
@@ -450,7 +450,7 @@ const reactlyMachine = createMachine(
             ...props
           }
         };
-         console.log ('%cresetContextState', 'color: cyan', newstate );
+        //  console.log ('%cresetContextState', 'color: cyan', newstate );
         return newstate;
  
       }),

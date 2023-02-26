@@ -35,8 +35,8 @@ const eventDelegateMachine = createMachine(
               ],
             },
           },
-          waiting: {
-            entry: () => console.log ('waiting'),
+          waiting: { 
+            entry: assign({ events: [] }),
             description: 'Wait for component events',
             on: {
               EXEC: {
@@ -46,7 +46,7 @@ const eventDelegateMachine = createMachine(
             },
           },
           reload: {
-            entry: () => console.log ('reload'),
+            entry: () => console.log ('%creloading props','font-weight:600'),
             invoke: {
               src: 'loadApplicationProps',
               onDone: [
@@ -56,13 +56,37 @@ const eventDelegateMachine = createMachine(
                 },
               ],
             },
+            on: {
+              EXEC: { 
+                actions: [(context) => console.log("%cEXEC called in RELOAD state", 
+                  'color:red;font-style:italic', context.events.length), "appendEventProps"]
+              },
+            },
           },
           loop: {
             initial: 'next',
             states: {
               next: {
+
+                // invoke: {
+                //   src: 'setIndex',
+                //   onDone: [
+                //     {
+                //       target: '#event_delegate.ready.loop.exec',
+                //       cond: 'moreEvents',
+                //       actions: ['assignNextEvent', assign((_, event) => ({
+                //         event_index: event.data
+                //       }))],
+                //     },
+                //     {
+                //       target: '#event_delegate.ready.waiting',
+                //       actions: assign({ events: [] })
+                //     },
+                //   ]
+                // },
+
                 after: {
-                  5: [
+                  1: [
                     {
                       target: '#event_delegate.ready.loop.exec',
                       cond: 'moreEvents',
@@ -70,8 +94,17 @@ const eventDelegateMachine = createMachine(
                     },
                     {
                       target: '#event_delegate.ready.waiting',
+                      actions: assign({ events: [] })
                     },
                   ],
+                },
+
+
+                on: {
+                  EXEC: { 
+                    actions: [(context) => console.log("%cEXEC called in NEXT state", 
+                      'color:red;font-style:italic', context.events.length), "appendEventProps"]
+                  },
                 },
               },
               exec: {
@@ -80,10 +113,11 @@ const eventDelegateMachine = createMachine(
                   'color:yellow;text-transform: uppercase', 
                   context.action?.type, 
                   context.action?.target, 
-                  context.event_index
+                  context.event_index,
+                  context.events?.length
                   ),
                 after: {
-                  5: [
+                  1: [
                     {
                       target: '#event_delegate.modal_open',
                       cond: 'isModalOpen',
@@ -109,6 +143,14 @@ const eventDelegateMachine = createMachine(
                     }
                   ],
                 },
+
+                on: {
+                  EXEC: { 
+                    actions: [(context) => console.log("%cEXEC called in LOOP state", 
+                      'color:red;font-style:italic', context.events.length), "appendEventProps"]
+                  },
+                },
+
               },
             },
           },
@@ -125,6 +167,12 @@ const eventDelegateMachine = createMachine(
         },
       },
       run_script: {
+        entry: (context) => console.log ('%cScript event', 'color: #ebebeb', context.action),
+        on: {
+          EXEC: { 
+            actions:  () => console.log("%cEXEC called in RUN_SCRIPT state", 'color:red;font-style:italic')
+          },
+        },
         invoke: {
           src: 'runScript',
           onDone: [
@@ -150,6 +198,11 @@ const eventDelegateMachine = createMachine(
         },
       },
       set_state: {
+        on: {
+          EXEC: { 
+            actions:  () => console.log("%cEXEC called in SET_STATE state", 'color:red;font-style:italic')
+          },
+        },
         invoke: {
           src: 'setState',
           onDone: [
@@ -186,11 +239,23 @@ const eventDelegateMachine = createMachine(
         }
       },
       modal_open: {
+        entry: (context) => console.log ('%cModal event', 'color: #bebebe', context.action),
+        on: {
+          EXEC: { 
+            actions:  () => console.log("%cEXEC called in MODAL_OPEN state", 'color:red;font-style:italic')
+          },
+        },
         invoke: {
           src: 'modalOpen',
           onDone: [
             {
               target: '#event_delegate.ready.loop', 
+            },
+          ],
+          onError: [
+            {
+              target: 'exec_error',
+              actions: 'assignProblem',
             },
           ],
         },
@@ -219,12 +284,32 @@ const eventDelegateMachine = createMachine(
         return { action };
       }),
       assignEventProps: assign((_, event) => {
-        // console.log({ event })
+
+        !!event.record && console.log({ event })
         return { 
           ...event,
           // eventProps: event.event
         }
       }),
+
+      appendEventProps: assign((context, event) => {
+        const { events, eventProps } = event;
+        console.log (`Appending %c%d events`, 'color:lime', events.length)
+
+        return { 
+          ...context,
+          eventProps: {
+            ...context.eventProps,
+            ...eventProps
+          },
+          events: [
+            ...context.events,
+            ...events
+          ]
+        }
+      }),
+
+
       incrementIndex: assign((context) => ({
         event_index: context.event_index + 1,
       })),
@@ -276,6 +361,8 @@ export const useEventDelegate = (props) => {
       runScript,
       setState,
       modalOpen, 
+
+      setIndex: async (context) => context.event_index + 1,
 
       dataExec: async(context) => { 
         const { action, appProps, pageProps, eventProps } = context;

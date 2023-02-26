@@ -3,7 +3,7 @@
 import { styled, Typography } from '@mui/material';
 // import { blue } from '@mui/material/colors';
 
-const Nowrap = styled(Typography)(( { theme, width, muted, small, odd, bold = false, hover } ) => {
+const Nowrap = styled(Typography)(( { theme, color, width, muted, small, thin, odd, bold = false, hover } ) => {
   const obj = {
     cursor: hover ? 'pointer' : 'default',
     fontWeight:  bold ? 600 : 400,
@@ -20,6 +20,17 @@ const Nowrap = styled(Typography)(( { theme, width, muted, small, odd, bold = fa
   if (small) {
     Object.assign(obj, {
       fontSize: '0.85rem'
+    })
+  }
+  if (thin) {
+    Object.assign(obj, {
+      lineHeight: '1em'
+    })
+  }
+
+  if (color && theme.palette[color]){
+    Object.assign(obj, {
+      color: theme.palette[color].main
     })
   }
   return obj;

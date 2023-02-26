@@ -1,5 +1,5 @@
 import React from "react";
-import { Stack, Card, Popover, Box } from "@mui/material";
+import { Stack, Popover, Box } from "@mui/material";
 import { Nowrap, SectionHead, Btn, Columns } from "../../../styled";
 // import { Tooltip } from '@mui/material';
 import { useMenu } from "../../../machines";
@@ -57,9 +57,10 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
 
   if (!renderer.state.matches("render") && !!renderer.component) {
     return (
-      <Card sx={{p: 1}} >
-        <Nowrap color={renderer.color}>Loading {renderer.component.ComponentName}...</Nowrap>
-      </Card>
+      <Stack sx={{p: 1}} >
+      <Nowrap variant="caption"  thin color={renderer.color}>Loading ...</Nowrap>
+        <Nowrap variant="body2" bold thin color={renderer.color}>{renderer.component.ComponentName}</Nowrap>
+      </Stack>
     );
   }
 
@@ -67,10 +68,13 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
   const handlers = supportedEvents.reduce((out, ev) => {   
     const handledEvents = events.filter(e => e.event === ev.name);
     if (handledEvents.length) {
-      out[ev.name] = (e, attributes) => {   
+      out[ev.name] = (e, attributes) => {  
+        ev.name === 'onPlayerEnded' &&
+          console.log ('EXEC %c%s',  'color:lime', ev.name, delegate.state.value, { handledEvents }) 
         delegate.send({
           type: 'EXEC',
           events: handledEvents,
+          record: ev.name === 'onPlayerEnded' ,
           eventProps: attributes, 
           data: attributes, 
           pageProps: props.stateProps,

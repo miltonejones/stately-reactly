@@ -209,7 +209,7 @@ export const audioMachine = createMachine(
                 {
 
                   target: "#audio_player.idle",
-                  actions: "clearPlayer",
+                  actions: ["invokeEnded", "clearPlayer"],
                 }
               ],
               QUEUE: {
@@ -274,6 +274,11 @@ export const audioMachine = createMachine(
         return {
           trackList 
         };
+      }),
+      invokeEnded: assign((context) => {
+        const { onPlayerEnded, player } = context;  
+        console.log ('%cENDED', 'color:red')
+        onPlayerEnded && onPlayerEnded(player);
       }),
       clearPlayer: assign((context, event) => {
         context.player.pause();
@@ -450,7 +455,6 @@ export const useAudio = ({
 
       audio.addEventListener("ended", () => {
         console.log('%cended', 'color: yellow;text-transform: capitalize');
-        onPlayerEnded && onPlayerEnded(audio);
         send("END");
       });
 

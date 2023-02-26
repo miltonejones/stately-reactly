@@ -61,7 +61,7 @@ export const createScriptOptions = (machine, send, refresh) => {
     const scriptList = getApplicationScripts(machine.context);
     const script = scriptList.find(f => f.name === scriptName);
     if (script) {
-      console.log ("Executing %c%s", "color:orange", scriptName, { ...script, data, state: refresh() })
+      console.log ("Executing %c%s", "color:orange", scriptName, { state: refresh() })
       return executeScript(script.ID, {
         scripts: scriptList, 
         selectedPage, 
@@ -109,8 +109,8 @@ export const createScriptOptions = (machine, send, refresh) => {
     // pageResourceState,
     Confirm: window.confirm,
 
-    Alert: (message, title, pre) => alert(message),
-    JSON: (json, title) => alert(JSON.stringify(json, 0, 2)),
+    Alert: (message, title, pre) => console.log({message,title,pre}),
+    JSON: (json, title) => console.log(JSON.stringify(json, 0, 2)),
 
     executeScriptByName, 
 

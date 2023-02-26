@@ -7,10 +7,13 @@ export const useRunScript = (scriptOptions = {}) => {
   const runScript = async (context, event) => {
     const { data, scripts, selectedPage, action } = context;  
     const { api, application, ...options } = scriptOptions;
-    console.log ({
+    const script = scripts.find(s => s.ID === action.target);
+
+    console.log ('runscript %c%s', 'color: orange;font-weight:700', script.name, {
       scriptOptions,
       data
-    })
+    });
+
     return executeScript(action.target, { 
       scripts, 
       selectedPage, 
