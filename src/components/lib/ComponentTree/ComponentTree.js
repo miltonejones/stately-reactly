@@ -73,8 +73,7 @@ const Specimen = ({ tag: Tag, children, supportedEvents = [], allowChildren, com
           console.log ('EXEC %c%s',  'color:lime', ev.name, delegate.state.value, { handledEvents }) 
         delegate.send({
           type: 'EXEC',
-          events: handledEvents,
-          record: ev.name === 'onPlayerEnded' ,
+          events: handledEvents, 
           eventProps: attributes, 
           data: attributes, 
           pageProps: props.stateProps,

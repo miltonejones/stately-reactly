@@ -13,15 +13,6 @@ export const createScriptOptions = (machine, send, refresh) => {
 
   const setState = (updated, scope) => {
 
-
-    // const existingProps = scope === 'application' ? machine.context.appProps : machine.context.stateProps;
-    // const newstate = typeof updated === 'function' 
-    //   ? updated(existingProps)
-    //   : {
-    //     ...existingProps,
-    //     ...updated
-    //   }
-
     console.log ("Executing %csetState", "color:cyan", { setState: {
       updated, 
       scope,
@@ -35,7 +26,9 @@ export const createScriptOptions = (machine, send, refresh) => {
       type: 'JSSTATE',
       scope,
       updated,
-    })
+    });
+
+
   }
 
   const execResourceByName = async (resourceName, params) => {
@@ -61,15 +54,16 @@ export const createScriptOptions = (machine, send, refresh) => {
     const scriptList = getApplicationScripts(machine.context);
     const script = scriptList.find(f => f.name === scriptName);
     if (script) {
-      console.log ("Executing %c%s", "color:orange", scriptName, { state: refresh() })
-      return executeScript(script.ID, {
+      const args = {
         scripts: scriptList, 
         selectedPage, 
         data,
         application,
         options,
         api
-      }) 
+      };
+      console.log ("Executing %c%s", "color:orange", scriptName, { args })
+      return executeScript(script.ID, args) 
     }
     console.log ("Could not find script '%s'", scriptName);
   }

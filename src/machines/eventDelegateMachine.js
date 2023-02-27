@@ -59,7 +59,7 @@ const eventDelegateMachine = createMachine(
             on: {
               EXEC: { 
                 actions: [(context) => console.log("%cEXEC called in RELOAD state", 
-                  'color:red;font-style:italic', context.events.length), "appendEventProps"]
+                  'color:red;font-style:italic', context.events.length), "assignEventProps"]
               },
             },
           },
@@ -103,7 +103,7 @@ const eventDelegateMachine = createMachine(
                 on: {
                   EXEC: { 
                     actions: [(context) => console.log("%cEXEC called in NEXT state", 
-                      'color:red;font-style:italic', context.events.length), "appendEventProps"]
+                      'color:red;font-style:italic', context.events.length), "assignEventProps"]
                   },
                 },
               },
@@ -147,7 +147,7 @@ const eventDelegateMachine = createMachine(
                 on: {
                   EXEC: { 
                     actions: [(context) => console.log("%cEXEC called in LOOP state", 
-                      'color:red;font-style:italic', context.events.length), "appendEventProps"]
+                      'color:red;font-style:italic', context.events.length), "assignEventProps"]
                   },
                 },
 
@@ -285,16 +285,27 @@ const eventDelegateMachine = createMachine(
       }),
       assignEventProps: assign((_, event) => {
 
+        console.log (`Assigning %c%d events`, 'color:lime;font-style: italic', event.events.length);
         !!event.record && console.log({ event })
         return { 
           ...event,
-          // eventProps: event.event
+          // eventProps: event.event 247
         }
       }),
 
       appendEventProps: assign((context, event) => {
         const { events, eventProps } = event;
-        console.log (`Appending %c%d events`, 'color:lime', events.length)
+
+        const freshEvents = events.filter(e => !context.events.find(f => f.ID === e.ID));
+
+
+        const acts = context.events.reduce((out, ev) => {
+          const existingEvent = events.find(e => e.ID === ev.ID);
+          return out.concat(existingEvent || ev); 
+        }, freshEvents);
+
+
+        console.log (`Appending %c%d events`, 'color:lime', events.length, acts?.length);
 
         return { 
           ...context,
@@ -302,10 +313,7 @@ const eventDelegateMachine = createMachine(
             ...context.eventProps,
             ...eventProps
           },
-          events: [
-            ...context.events,
-            ...events
-          ]
+          events: acts
         }
       }),
 
