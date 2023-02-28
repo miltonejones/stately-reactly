@@ -9,7 +9,7 @@ const Nowrap = styled(Typography)(( { theme, color, width, muted, small, thin, o
     fontWeight:  bold ? 600 : 400,
     // backgroundColor: odd ? blue[50] : 'white',
     whiteSpace: 'nowrap',
-    overflow: 'hidden',
+    overflowX: 'hidden',
     textOverflow: 'ellipsis',
     width:  width || '100%',
     color: muted ? theme.palette.text.secondary : theme.palette.text.primary ,

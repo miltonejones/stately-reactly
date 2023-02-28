@@ -1,6 +1,7 @@
 
 import { createMachine, assign } from 'xstate';
 import { useMachine } from "@xstate/react";
+import { uniqueId } from '../util/uniqueId';
 
 // add machine code
 const registrarMachine = createMachine({
@@ -8,10 +9,48 @@ const registrarMachine = createMachine({
   initial: "working",
   states: {
     opened: {
+      initial: 'idle',
+      states: {
+        idle: {},
+        view_state: {
+          on: {
+            EXIT: {
+              target: "idle",
+              actions: assign({ selectedOption: null, selectedProp: null})
+            }
+          }
+        },
+        view_log: {
+          on: {
+            EXIT: {
+              target: "idle",
+              actions: assign({ selectedOption: null, selectedProp: null})
+            }
+          }
+       }
+      },
       on: {
+        RESTATE: {
+          actions: assign((_, event) => ({
+            [event.key]: event.value
+          }))
+        },
+        LOG: {
+          actions: "assignLog"
+        },
         VIEW: {
-          target: "view_machine",
-          actions: ["assignMachine", assign({ open: true })],
+          target: "#registrar.opened.view_log",
+          actions: [assign((_, event) => ({
+            selectedOption: event.ID,
+            selectedProp: null
+          }))],
+        },
+        STATE: {
+          target: "#registrar.opened.view_state",
+          actions: [assign((_, event) => ({
+            selectedProp: event.prop,
+            selectedOption: null
+          }))],
         },
         CLOSE: {
           target: "working",
@@ -19,21 +58,16 @@ const registrarMachine = createMachine({
         }
       }
     },
-
-    view_machine: {
-      on: {
-        CLOSE: {
-          target: "#registrar.opened",
-          actions: ["clearMachine"],
-        },
-      },
-    },
+ 
 
     working: {
       initial: "idle",
       states: {
         idle: {
           on: {
+            LOG: {
+              actions: "assignLog"
+            },
             OPEN: { 
               target: "#registrar.opened",
               actions: [assign({ open: true })],
@@ -48,7 +82,13 @@ const registrarMachine = createMachine({
       },
     },
   },
-  context: { machines: {}, open: false },
+  context: { 
+    machines: {}, 
+    open: false, 
+    logitems: [], 
+    maxitems: 50, 
+    selectedTab: 0 
+  },
   predictableActionArguments: true,
   preserveActionOrder: true,
 },
@@ -57,9 +97,9 @@ const registrarMachine = createMachine({
     clearMachine: assign(() => ({
       machine: null
     })),
-    assignMachine: assign((_, event) => ({
-      machine: event.machine
-    })),
+    assignLog: assign((context, event) => ({
+      logitems: [event.entry].concat(context.logitems.slice(0, context.maxitems))
+    })), 
     registerMachine: assign((context, event) => ({
       machines: {
         ...context.machines,
@@ -84,10 +124,22 @@ export const useRegistrar = () => {
     })
   }
 
+  const log = (message, label, param, ...options) => {
+    console.log (message, label, param, { options })
+    send({
+      type: 'LOG',
+      entry: {
+        message, label, param, options, ID: uniqueId(),
+        stamp: new Date().getTime()
+      }
+    })
+  }
+
   return {
     state,
     send, 
     register,
+    log,
     ...state.context
   };
 }

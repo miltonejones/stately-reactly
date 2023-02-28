@@ -19,7 +19,10 @@ const dataExecuteMachine = createMachine({
         src: "registerMe",
         onDone: [
           {
-            target: "start"
+            target: "start",
+            actions: assign((_, event) => ({
+              registrar: event.data
+            }))
           }
         ],
         onError: [
@@ -180,7 +183,7 @@ const dataExecuteMachine = createMachine({
         parse_response: {
           entry: [assign(context => ({
             event_step: context.event_step + 1
-          })), () => console.log ('Transforming response')],
+          })), (context) => context.registrar.log ('Transforming response')],
           description: "Resolve response into configured columns",
           invoke: {
             src: "transformResponse",
@@ -290,10 +293,7 @@ const dataExecuteMachine = createMachine({
     assignResponse:  assign((context, event) => {
       const { node, columns, ID } = context.resource;  
       const json = event.data;
-      console.log ('SETTING RESPONSE: step %c%d', 'color: lime', context.event_step, {
-        response: event.data,
-        ID, 
-      })
+      context.registrar.log ('SETTING RESPONSE: step %c%d', 'color: lime', context.event_step)
 
       const isGetRequest = context.resource.method === "GET"; 
       const rows = !(!!node && !!columns?.length) ? json : drillPath(json, node);
@@ -378,20 +378,20 @@ export const useDataExecute = ({
     services: { 
       registerMe: async () => {
         // const instance = uniqueId();
-        // // console.log ({ registering: dataExecuteMachine.id, instance })
+        // // context.registrar.log ({ registering: dataExecuteMachine.id, instance })
         // props.registrar && props.registrar.register({
         //   instance,
         //   machine: dataExecuteMachine.id,
         //   args: {state, send}
         // });
-        return true;
+        return props.registrar;
       },
       loadPageParams: async () => ({
         appProps,
         pageProps,
       }),
       responseReceived: async (context) => {  
-        console.log ('SENDING RESPONSE step %c%d', 'color: red', context.event_step, {
+        context.registrar.log ('SENDING RESPONSE step %c%d', 'color: red', context.event_step, {
           response: context.response,
           json: context.json, 
         })
@@ -426,9 +426,8 @@ export const useDataExecute = ({
         const { ID, events = [] } = resource;
         const requestEvents = events.filter(f => f.event === eventType);
         if (requestEvents?.length) {
-          console.log ('Events for %c%s', 'color:lime', resource.name, { 
-            [eventType]: requestEvents, 
-            context, 
+          context.registrar.log ('Events for %c%s', 'color:lime', resource.name, { 
+            [eventType]: requestEvents,  
             state: dataHandler.state.value, 
             index: dataHandler.event_index 
           });
@@ -440,7 +439,7 @@ export const useDataExecute = ({
             events: requestEvents,
           };
 
-          console.log ('SENDING REQUEST: step %c%d', 'color: lime', context.event_step, { ID, message });
+          context.registrar.log ('SENDING REQUEST: step %c%d', 'color: lime', context.event_step, { ID, requestEvents });
   
           dataHandler.send(message);
         }

@@ -1,6 +1,6 @@
 import { getBindings } from "../../util/getBindings";
 
-export const useSetState = (stateSetter) => {
+export const useSetState = (stateSetter, registrar) => {
  
   const setState = async (context) => {
     const { action, eventProps } = context;
@@ -16,7 +16,7 @@ export const useSetState = (stateSetter) => {
       }); 
 
     !!eventProps &&
-      console.log ('state %c%s', 'color:cyan', 
+    registrar && registrar.log ('state %c%s', 'color:cyan', 
         action.target, action.value, value ,  key
       );
 

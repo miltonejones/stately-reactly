@@ -222,6 +222,12 @@ const reactlyMachine = createMachine(
                 {
                   target: 'loaded'
                 }
+              ],
+              onError: [
+                {
+                  target: 'loaded',
+                  actions: "assignProblem",
+                },
               ]
             }
           },
@@ -264,11 +270,11 @@ const reactlyMachine = createMachine(
                     // entry: () => console.log('Entering state %creset', 'color:yellow;font-weight:600'),
                     on: {
                       JSSTATE: {  
-                        target: "static",
+                        // target: "static",
                         actions: "resetContextStateJS",
                       },
                       SETSTATE: {  
-                        target: "static",
+                        // target: "static",
                         actions: "resetContextState",
                       },
                     },
@@ -564,7 +570,7 @@ const reactlyMachine = createMachine(
       }),
       assignPageIDByName: assign((context, event) => { 
         const { applicationList, application } = context;
-        console.log ({ applicationList, event });
+        // console.log ({ applicationList, event });
         if (applicationList) {  
           const app = applicationList.find(f => f.path === event.appname);
           if (app) {
@@ -791,7 +797,7 @@ export const useReactly = () => {
     })
   }
 
-  const scriptOptions = createScriptOptions(state, send, () => state.value);
+  const scriptOptions = createScriptOptions(state, send, () => state.value, registrar);
 
   const delegateProps =  {
     application,
@@ -810,7 +816,12 @@ export const useReactly = () => {
 
   const invokeLoad = (events, props) => { 
     console.clear();
-    console.log ('invokeLoad', { stateProps, appProps, state: delegate.state.value })
+    // console.log ('invokeLoad', { stateProps, appProps, state: delegate.state.value })
+// console.log ({
+//   registrar
+// })
+
+    registrar.log ('invokeLoad %c%s', 'color:yellow', pagename, { state: delegate.state.value })
 
     delegate.send({
       type: 'EXEC',

@@ -6,10 +6,10 @@ export const useRunScript = (scriptOptions = {}) => {
 
   const runScript = async (context, event) => {
     const { data, scripts, selectedPage, action } = context;  
-    const { api, application, ...options } = scriptOptions;
+    const { api, application, registrar, ...options } = scriptOptions;
     const script = scripts.find(s => s.ID === action.target);
 
-    console.log ('runscript %c%s', 'color: orange;font-weight:700', script.name, {
+    !!registrar && registrar.log ('runscript %c%s', 'color: orange;font-weight:700', script.name, {
       scriptOptions,
       data
     });

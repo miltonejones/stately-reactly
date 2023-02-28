@@ -6,14 +6,14 @@ import { map } from './map';
 // import { report } from './report';
 import { shuffle } from './shuffle';
 
-export const createScriptOptions = (machine, send, refresh) => {
+export const createScriptOptions = (machine, send, refresh, registrar) => {
 
   const { selectedPage, stateProps, appProps } = machine.context;
 
 
   const setState = (updated, scope) => {
 
-    console.log ("Executing %csetState", "color:cyan", { setState: {
+    registrar.log ("Executing %c%s", "color:cyan", "setState", { setState: {
       updated, 
       scope,
       state: refresh()
@@ -62,10 +62,10 @@ export const createScriptOptions = (machine, send, refresh) => {
         options,
         api
       };
-      console.log ("Executing %c%s", "color:orange", scriptName, { args })
+      registrar.log ("Executing %c%s", "color:orange", scriptName, { args })
       return executeScript(script.ID, args) 
     }
-    console.log ("Could not find script '%s'", scriptName);
+    registrar.log ("Could not find script '%s'", scriptName);
   }
 
   const execRefByName = (name, fn) => {
@@ -80,7 +80,7 @@ export const createScriptOptions = (machine, send, refresh) => {
 
   const getResourceByName = (resourceName) => {
 
-    console.log ({ resourceName })
+    registrar.log ('getResourceByName %c"%s"', 'color:lime;font-weight:600',  resourceName )
 
   }
 
@@ -129,6 +129,7 @@ export const createScriptOptions = (machine, send, refresh) => {
   const scriptOptions = { 
     ...options, 
     application, 
+    registrar,
     api  
   }
 

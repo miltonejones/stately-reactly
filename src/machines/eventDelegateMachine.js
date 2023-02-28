@@ -46,7 +46,7 @@ const eventDelegateMachine = createMachine(
             },
           },
           reload: {
-            entry: () => console.log ('%creloading props','font-weight:600'),
+            entry: (context) => context.registrar.log ('%creloading props','font-weight:600'),
             invoke: {
               src: 'loadApplicationProps',
               onDone: [
@@ -58,7 +58,7 @@ const eventDelegateMachine = createMachine(
             },
             on: {
               EXEC: { 
-                actions: [(context) => console.log("%cEXEC called in RELOAD state", 
+                actions: [(context) => context.registrar.log("%cEXEC called in RELOAD state", 
                   'color:red;font-style:italic', context.events.length), "assignEventProps"]
               },
             },
@@ -102,17 +102,17 @@ const eventDelegateMachine = createMachine(
 
                 on: {
                   EXEC: { 
-                    actions: [(context) => console.log("%cEXEC called in NEXT state", 
+                    actions: [(context) => context.registrar.log("%cEXEC called in NEXT state", 
                       'color:red;font-style:italic', context.events.length), "assignEventProps"]
                   },
                 },
               },
               exec: {
-                entry: (context) => console.log (
+                entry: (context) => context.registrar.log (
                   'exec %c%s', 
                   'color:yellow;text-transform: uppercase', 
                   context.action?.type, 
-                  context.action?.target, 
+                  { action: context.action }, 
                   context.event_index,
                   context.events?.length
                   ),
@@ -146,7 +146,7 @@ const eventDelegateMachine = createMachine(
 
                 on: {
                   EXEC: { 
-                    actions: [(context) => console.log("%cEXEC called in LOOP state", 
+                    actions: [(context) => context.registrar.log("%cEXEC called in LOOP state", 
                       'color:red;font-style:italic', context.events.length), "assignEventProps"]
                   },
                 },
@@ -167,10 +167,10 @@ const eventDelegateMachine = createMachine(
         },
       },
       run_script: {
-        entry: (context) => console.log ('%cScript event', 'color: #ebebeb', context.action),
+        entry: (context) => context.registrar.log ('%cScript event', 'color: #ebebeb', context.action),
         on: {
           EXEC: { 
-            actions:  () => console.log("%cEXEC called in RUN_SCRIPT state", 'color:red;font-style:italic')
+            actions:  (context) => context.registrar.log("%cEXEC called in RUN_SCRIPT state", 'color:red;font-style:italic')
           },
         },
         invoke: {
@@ -200,7 +200,7 @@ const eventDelegateMachine = createMachine(
       set_state: {
         on: {
           EXEC: { 
-            actions:  () => console.log("%cEXEC called in SET_STATE state", 'color:red;font-style:italic')
+            actions:  (context) => context.registrar.log("%cEXEC called in SET_STATE state", 'color:red;font-style:italic')
           },
         },
         invoke: {
@@ -239,10 +239,10 @@ const eventDelegateMachine = createMachine(
         }
       },
       modal_open: {
-        entry: (context) => console.log ('%cModal event', 'color: #bebebe', context.action),
+        entry: (context) => context.registrar.log ('%cModal event', 'color: #bebebe', context.action),
         on: {
           EXEC: { 
-            actions:  () => console.log("%cEXEC called in MODAL_OPEN state", 'color:red;font-style:italic')
+            actions:  (context) => context.registrar.log("%cEXEC called in MODAL_OPEN state", 'color:red;font-style:italic')
           },
         },
         invoke: {
@@ -279,14 +279,12 @@ const eventDelegateMachine = createMachine(
         ...event.data,
       })),
       assignNextEvent: assign((context) => {
-        const { action } = context.events[context.event_index];
-        // console.log(' :: assignNextEvent :: Executing %o', action)
+        const { action } = context.events[context.event_index]; 
         return { action };
       }),
-      assignEventProps: assign((_, event) => {
+      assignEventProps: assign((context, event) => {
 
-        console.log (`Assigning %c%d events`, 'color:lime;font-style: italic', event.events.length);
-        !!event.record && console.log({ event })
+        context.registrar.log (`Assigning %c%d events`, 'color:lime;font-style: italic', event.events.length); 
         return { 
           ...event,
           // eventProps: event.event 247
@@ -305,7 +303,7 @@ const eventDelegateMachine = createMachine(
         }, freshEvents);
 
 
-        console.log (`Appending %c%d events`, 'color:lime', events.length, acts?.length);
+        context.registrar.log (`Appending %c%d events`, 'color:lime', events.length, acts?.length);
 
         return { 
           ...context,
@@ -338,30 +336,23 @@ export const useEventDelegate = (props) => {
       
     handleResponse,
     scriptOptions,
-    // registrar
+    registrar
   } = props;
   
   const routeParams = useParams();
   const { openLink } = useOpenLink()
   const { runScript } = useRunScript(scriptOptions);
-  const { setState } = useSetState(setter);
+  const { setState } = useSetState(setter, registrar);
   const { modalOpen } = useModalOpen(opener);
  
   const [state, send] = useMachine(eventDelegateMachine, {
     services: { 
-      loadApplicationProps: async () => {
-        // console.log ({
-        //   routeParams
-        // })
-        // registrar && registrar.register({
-        //   instance: uniqueId(),
-        //   machine: eventDelegateMachine.id,
-        //   args: { state, send }
-        // })
+      loadApplicationProps: async () => { 
         return {
           application,
           selectedPage,
-          scripts
+          scripts,
+          registrar
         }
       },
 
@@ -380,11 +371,7 @@ export const useEventDelegate = (props) => {
         const terms = !action.terms ? [] : Object.keys(action.terms).reduce((out, term) => {
           const key = action.terms[term]; 
 
-          const routeProps = getRouteParams(routeParams["*"], selectedPage?.parameters);
-          // !!routeParams["*"] && console.log ({
-          //   routeProps,
-          //   routeParams
-          // })
+          const routeProps = getRouteParams(routeParams["*"], selectedPage?.parameters); 
           const value = getBindings(key, {
             appProps,
             pageProps,
@@ -401,15 +388,15 @@ export const useEventDelegate = (props) => {
 
         }, []);
 
-        console.log ({
-          appProps,
-          pageProps,
-          eventProps,
-          resource,
-          connection,
-          terms,
-          state: exec.state.value
-        });
+        // console.log ({
+        //   appProps,
+        //   pageProps,
+        //   eventProps,
+        //   resource,
+        //   connection,
+        //   terms,
+        //   state: exec.state.value
+        // });
      
         exec.send({
           type: 'TEST',
@@ -431,12 +418,7 @@ export const useEventDelegate = (props) => {
     send('COMPLETE');
     handleResponse(ID, data);
   }
-
-
-  // console.log ({ routeProps })
-
-  // !!routeParams && Object.keys(routeParams).length && 
-  //   console.log ({ routeParams })
+ 
 
   const exec = useDataExecute({
     appProps,

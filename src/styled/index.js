@@ -1,3 +1,4 @@
+import BacklessDrawer from './BacklessDrawer';
 import ChipTextField from './ChipTextField';
 import Check from './Check';
 import TextIcon from './TextIcon';
@@ -37,6 +38,7 @@ export const typeIcons = {
 };
 
 export {
+  BacklessDrawer,
   ChipTextField,
   Check,
   TextIcon,

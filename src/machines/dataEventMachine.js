@@ -6,19 +6,22 @@ import { clearProblems } from "../util/clearProblems";
 import { useRunScript } from './handlers/runScript';
 import { useSetState } from './handlers/setState';
 import { useModalOpen } from './handlers/modalOpen';
-import { uniqueId } from '../util/uniqueId';
+// import { uniqueId } from '../util/uniqueId';
 
 // add machine code
 const dataEventMachine = createMachine({
   id: "data_event",
-  initial: "ready",
+  initial: "reg",
   states: {
     reg: {
       invoke: {
         src: "register",
         onDone: [
           {
-            target: "ready"
+            target: "ready",
+            actions: assign((_, event) => ({
+              registrar: event.data
+            }))
           }
         ]
       }
@@ -147,20 +150,20 @@ const dataEventMachine = createMachine({
   actions: {
     assignNextEvent: assign((context) => {
       const { action } = context.events[context.event_index];
-      console.log ("data event '%c%s' action", 'color:red', action.type, { action } )
+      !!context.registrar && context.registrar.log ("data event %c'%s' action", 'color:red', action.type, { action } )
       return {
         action
       }
     }),
-    assignEventProps: assign((_, event) => {
+    assignEventProps: assign((context, event) => {
       const { application, events, scripts, selectedPage, data } = event;
-     console.log ('Assigning event props', { events })
+     !!context.registrar && context.registrar.log ('Assigning %c%s', 'font-weight:bold', 'event props', { events })
       return {
         application, events, scripts, selectedPage, data
       }
     }),
     incrementIndex: assign((context) => {
-      console.log ("Index %d, %o", context.event_index, context.action)
+      !!context.registrar && context.registrar.log ("Index %d", 'color: cyan', context.event_index, context.action)
       return {
         event_index: context.event_index + 1,
       }
@@ -174,17 +177,13 @@ const dataEventMachine = createMachine({
 export const useDataEvent = (props) => {
 
   const { runScript } = useRunScript(props.scriptOptions);
-  const { setState } = useSetState(props.setState);
+  const { setState } = useSetState(props.setState, props.registrar);
   const { modalOpen } = useModalOpen(props.modalOpen);
 
   const [state, send] = useMachine(dataEventMachine, {
     services: {
-      register: async () => {
-        props.registrar && props.registrar.register({
-          instance: uniqueId(),
-          machine: dataEventMachine.id,
-          args: {state, send}
-        })
+      register: async () => { 
+        return props.registrar
       },
       runScript,
       setState,
